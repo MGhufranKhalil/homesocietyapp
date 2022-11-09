@@ -1,0 +1,177 @@
+<template>
+<div class="page add-maintenance transparent" data-name="add-maintenance" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('BulkMaintenance')}}</div>
+      <div class="right">
+        <a href="#" class="link select-all" @click="selectAll">
+          <i class="si-dots"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="list no-margin">
+      <ul>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Month')}}</div>
+              <div class="item-input-wrap">
+                <input type="text" name="date" placeholder="" id="collection-date" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('HouseNumber')}}</div>
+              <div class="item-input-wrap">
+                <div class="houses block no-margin">
+                  {{#each house_list}}
+                    <a class="chip chip-outline color-gray selectable" href="#" @click="toggleChip" data-house="{{ this }}">
+                      <div class="chip-label">{{ this }}</div>
+                    </a>
+                  {{/each}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Amount')}} ({{_ll('PerHouse')}})</div>
+              <div class="item-input-wrap">
+                <input type="number" name="amount" placeholder="" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <!--li class="align-top">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Notes')}}</div>
+              <div class="item-input-wrap">
+                <textarea name="notes" placeholder="{{ _ll('Optional') }}" style="height:20vh"></textarea>
+              </div>
+            </div>
+          </div>
+        </li-->
+      </ul>
+      <div class="row">
+        <div class="col-5 small-20 medium-30 large-30"></div>
+        <div class="col-90 small-60 medium-40 large-40 block margin">
+          <a href="#" class="button button-large button-fill button-raised" @click="submit">{{_ll('AddMaintenance')}}</a>
+  			</div>
+        <div class="col-5 small-20 medium-30 large-30"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+  import {parse, format} from 'date-fns';
+
+  const loadMaintenanceList = () => {
+    // reset the chips first
+    $$(".page.add-maintenance .chip").removeClass("x color-green").addClass("chip-outline color-gray selectable");
+    app.preloader.show();
+    const date = parse($$(".page.add-maintenance [name=date]").val(), "MMMM yyyy", new Date());
+    const month = format(date, 'MMMM yyyy');
+    Api.get_maintenance_list(month).then(function(res) {
+      app.preloader.hide();
+      for(var i in res.data.data.houses) {
+        const h = res.data.data.houses[i];
+        const el = $$(".page.add-maintenance .chip[data-house='" + h + "']");
+        el.removeClass("selectable chip-outline color-gray").addClass("color-purple");
+      }
+    }).catch(function(error) {
+      app.preloader.hide();
+    });
+  };
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        house_list: app.data.society.list,
+        preselect: []
+      });
+  	},
+  	methods: {
+      selectAll: function(e) {
+        if($$(e.target).hasClass("all")) {
+          $$(e.target).removeClass("all");
+          $$(".page.add-maintenance .chip.selectable").removeClass("x color-green").addClass("chip-outline color-gray");
+        } else {
+          $$(e.target).addClass("all");
+          $$(".page.add-maintenance .chip.selectable").removeClass("chip-outline color-gray").addClass("x color-green");
+        }
+      },
+      toggleChip: function(e) {
+        const chip = e.target.tagName.toLowerCase() == 'a' ? $$(e.target) : $$(e.target).parent(".chip");
+        if(!chip.hasClass("selectable")) return false;
+        if(chip.hasClass("x")) {
+          chip.removeClass("x color-green").addClass("chip-outline color-gray");
+        } else {
+          chip.removeClass("chip-outline color-gray").addClass("x color-green");
+        }
+      },
+      submit: function() {
+        app.preloader.show();
+        const house_list = [];
+        $$(".page.add-maintenance .chip.x").each(function() {
+          house_list.push($$(this).attr("data-house"));
+        });
+  			const data = {
+          date: $$(".page.add-maintenance [name=date]").val(),
+          house_list: house_list,
+  				amount: $$(".page.add-maintenance [name=amount]").val()
+  				//notes: $$(".page.add-maintenance [name=notes]").val(),
+  			};
+  			Api.add_bulk_maintenance(data).then(function(res) {
+          app.preloader.hide();
+          Alerts.success(_ll('CollectionAdded'));
+          app.methods.goBack();
+  			}).catch(function(error) {
+          app.preloader.hide();
+          Alerts.error(error.message || _ll('SubmitFailed'));
+        });
+  		}
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        setTimeout(function() {
+          var expenseCal = app.calendar.create({
+            locale: DB.get('lang') == 'ur' ? 'ur' : 'en',
+            inputEl: '#collection-date',
+            openIn: 'popover',
+            dateFormat: "MM yyyy",
+            monthPicker: true,
+            on: {
+              dayClick: function () {
+                expenseCal.close();
+                setTimeout(loadMaintenanceList, 20);
+              }
+            }
+            // dateFormat: { weekday: 'long', month: 'long', day: '2-digit', year: 'numeric' },
+          });
+          expenseCal.open();
+        }, 10);
+  		}
+  	}
+  };
+  </script>

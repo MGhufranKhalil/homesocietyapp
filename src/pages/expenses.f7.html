@@ -1,0 +1,145 @@
+<template>
+<div class="page expenses" data-name="expenses" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="panel-open" data-panel="left">
+          <i class="si-menu"></i>
+        </a>
+      </div>
+      <div class="title">{{_ll('Expenses')}}</div>
+    </div>
+  </div>
+  <div class="page-content ptr-content" data-ptr-distance="55" data-ptr-mousewheel="true">
+    <div class="ptr-preloader">
+      <div class="preloader"></div>
+      <div class="ptr-arrow"></div>
+    </div>
+    {{#each list}}
+    <div class="data-table data-table-init card">
+      <div class="card-header">
+        <div class="data-table-title">{{ @key }}</div>
+      </div>
+      <div class="card-content">
+        <table>
+          <tbody>
+            {{#each this}}
+            <tr>
+              {{#js_if "this.@key == 'Total'"}}
+              <td class="label-cell expense">{{@key}}</td>
+              <td class="numeric-cell expense">{{this}}</td>
+              {{else}}
+                {{#js_if "this.@key == 'Collection'"}}
+                <td class="label-cell collection">{{@key}}</td>
+                <td class="numeric-cell collection">{{this}}</td>
+                {{else}}
+                  {{#js_if "this.@key == 'Balance'"}}
+                  <td class="label-cell balance">{{@key}}</td>
+                <td class="numeric-cell balance">{{this}}</td>
+                  {{else}}
+                  <td class="label-cell">{{@key}}</td>
+                  <td class="numeric-cell">{{this}}</td>
+                  {{/js_if}}
+                {{/js_if}}
+              {{/js_if}}
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+        <div class="block block-strong">
+          <a href="/expenses/{{@key}}"><i class="si-reports"></i>{{../_ll('ViewDetails')}}</a>
+        </div>
+      </div>
+    </div>
+    {{/each}}
+    {{#if newExpense}}
+    <div class="row" style="padding:30px 0">&nbsp;</div>
+    {{/if}}
+  </div>
+  {{#js_if "this.newCollection || this.newExpense"}}
+    <div class="fab fab-right-bottom color-purple">
+      <a href="#" class="">
+        <i class="icon f7-icons">plus</i>
+        <i class="icon f7-icons">xmark</i>
+      </a>
+      <div class="fab-buttons fab-buttons-top">
+        {{#if newExpense}}
+        <a href="/add-expense/" data-view="#view-expenses" class="fab-label-button color-blue fab-close">
+          <span><i class="si-calminus"></i></span>
+          <span class="fab-label">{{_ll('AddExpense')}}</span>
+        </a>
+        {{/if}}
+        {{#if newCollection}}
+        <a href="/add-collection/" data-view="#view-expenses" class="fab-label-button color-green fab-close">
+          <span><i class="si-plus"></i></span>
+          <span class="fab-label color-green">{{_ll('Collection')}}</span>
+        </a>
+        <a href="/add-maintenance/" data-view="#view-expenses" class="fab-label-button color-orange fab-close">
+          <span><i class="si-calplus"></i></span>
+          <span class="fab-label">{{_ll('BulkMaintenance')}}</span>
+        </a>
+        {{/if}}
+      </div>
+    </div>
+  {{/js_if}}
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+  import Util from '../js/util.js';
+  import Cache from '../js/cache.js';
+
+  let expensesPage = null;
+  let expensesPtr = null;
+
+  const loadExpenses = (event) => {
+    Api.get_expenses().then(function(res) {
+      if(!res.data.success) {
+        throw new Error('Network issue');
+      }
+      if(event) app.ptr.done(expensesPtr);
+      expensesPage.$setState({
+        list: res.data.data
+      });
+      Cache.set('expenses', res.data.data);
+    }).catch(function(error) {
+      if(event) {
+        app.ptr.done(expensesPtr);
+        Alerts.error(error);
+      }
+    });
+  };
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        list: [],
+        newExpense: Util.can('expense'),
+        newCollection: Util.can('collection')
+  		});
+  	},
+  	methods: {
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        expensesPage = this;
+        expensesPtr = $$('.expenses .ptr-content');
+        expensesPtr.on('ptr:refresh', loadExpenses);
+        setTimeout(function () {
+          page.router.clearPreviousHistory();
+          expensesPage.$setState({
+            list: Cache.get('expenses', [])
+          });
+          loadExpenses();
+        }, 10);
+  		},
+      pageBeforeIn: function(e, page) {
+        $$('.toolbar').removeClass("hidden");
+      }
+  	}
+  };
+  </script>

@@ -1,0 +1,145 @@
+<template>
+<div class="page poll-vote transparent" data-name="poll-vote" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('VotingPoll')}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    {{#js_if "this.poll"}}
+      <div class="card poll-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="si-user-circle vote"></i>
+          </div>
+          <div class="card-name">{{escapeHTML poll.title}}</div>
+          <div class="card-date">{{timeAgo poll.created_at}}</div>
+        </div>
+        <div class="card-content">
+          <p class="block block-strong">{{nl2br poll.details}}</p>
+        </div>
+        <div class="card-footer">
+          <div class="card-date"><i class="si-calplus"></i>{{_ll('LastVotingDate')}}: {{dateOnly format="do MMMM yyyy" poll.expires}}</div>
+        </div>
+      </div>
+      {{#js_if "this.poll.open == '1'"}}
+        <div class="list vote">
+          <ul>
+            <li class="align-top">
+              <div class="item-content item-input">
+                <div class="item-inner">
+                  <p>{{_ll('VoteChoice')}}</p>
+                </div>
+              </div>
+            </li>
+            {{#each choices}}
+              <li class="align-top">
+                <div class="item-content item-input">
+                  <div class="item-inner">
+                    <a href="#" data-choice-id="{{ this.id }}" class="button button-large button-fill button-raised" @click="vote">{{escapeHTML this.title}}</a>
+                  </div>
+                </div>
+              </li>
+            {{/each}}
+          </ul>
+        </div>
+      {{/js_if}}
+      <div class="card result-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="si-hourglass-half vote" style="font-size:0.6em"></i>
+          </div>
+          <div class="card-name">{{_ll('VotingCount')}}</div>
+        </div>
+        <div class="card-content">
+          {{#each results}}
+            <p class="block block-strong">
+              {{escapeHTML this.title}}
+              <span style="color:{{str2color this.votes s="80" l="20"}}"><b>{{this.votes}}</b> {{../_ll('VoteCount')}}</span>
+            </p>
+          {{/each}}
+        </div>
+      </div>
+    {{else}}
+      <div class="preloader empty-loader"></div>
+    {{/js_if}}
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import Util from '../js/util.js';
+
+  let votingPage = null;
+
+  const submitVote = function(e) {
+    const id = votingPage.$route.params.id;
+    const choice = $$(e.target).attr("data-choice-id");
+    const data = {
+      poll_id: id,
+      choice: choice
+    };
+    Api.add_vote(data).then(function(res) {
+      votingPage.$setState({ voted: true });
+      app.methods.goBack();
+      Alerts.success(_ll('VoteSubmitted'));
+    }).catch(function(error) {
+      Alerts.error(error.message || _ll('SubmitFailed'));
+    });
+  };
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        poll: null,
+        choices: null,
+        results: null,
+        voted: false
+      });
+  	},
+  	methods: {
+      vote: function(e) {
+        votingPage = this;
+        const choice = $$(e.target).attr("data-choice-id");
+        const txt = this.choices.find(c => c.id == choice).title;
+        app.dialog.confirm(txt, _ll('ConfirmVote') , function() {
+          submitVote(e);
+        });
+  		}
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        const id = this.$route.params.id;
+        Api.get_poll(id).then(function(res) {
+          const choices = res.data.data.choices || null;
+          const results = choices ? [...choices] : [];
+          results.sort((a, b) => a.votes < b.votes);
+          self.$setState({
+            poll: res.data.data.poll,
+            choices: choices,
+            results: results
+          }, function() {
+            $$(".page.poll-vote .preloader-inner").remove();
+          });
+        }).catch(function(error) {
+          Alerts.error(error.message);
+        });
+      },
+      pageAfterOut: function() {
+        if(this.voted) {
+          setTimeout(function() { app.views[0].router.refreshPage(); }, 50);
+        }
+      }
+  	}
+  };
+  </script>

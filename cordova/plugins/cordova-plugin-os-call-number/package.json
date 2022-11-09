@@ -1,0 +1,56 @@
+{
+  "_from": "git+https://github.com/Samnan/CordovaCallNumberPlugin.git",
+  "_id": "cordova-plugin-os-call-number@1.0.3",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/cordova-plugin-os-call-number",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "https://github.com/Samnan/CordovaCallNumberPlugin.git",
+    "rawSpec": "https://github.com/Samnan/CordovaCallNumberPlugin.git",
+    "saveSpec": "git+https://github.com/Samnan/CordovaCallNumberPlugin.git",
+    "fetchSpec": "https://github.com/Samnan/CordovaCallNumberPlugin.git",
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "git+https://github.com/Samnan/CordovaCallNumberPlugin.git#5c861fc728638335186cac270e2c972d6ee01a3a",
+  "_spec": "https://github.com/Samnan/CordovaCallNumberPlugin.git",
+  "_where": "/Volumes/www/Mobile/Sumaira/cordova",
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/italrap/CordovaCallNumberPlugin/issues"
+  },
+  "bundleDependencies": false,
+  "cordova": {
+    "id": "cordova-plugin-os-call-number",
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  },
+  "deprecated": false,
+  "description": "Call Number Plugin for Cordova Apps",
+  "homepage": "https://github.com/italrap/CordovaCallNumberPlugin#readme",
+  "keywords": [
+    "cordova",
+    "call",
+    "dialer",
+    "phonegap",
+    "ecosystem:cordova",
+    "cordova-ios",
+    "cordova-android",
+    "ionic"
+  ],
+  "license": "Apache 2.0",
+  "module": "index.js",
+  "name": "cordova-plugin-os-call-number",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/italrap/CordovaCallNumberPlugin.git"
+  },
+  "version": "1.0.3"
+}

@@ -1,0 +1,25 @@
+<template>
+  <div class="page blank transparent no-toolbar no-navbar">
+    <div class="page-content">
+      <div class="main no-margin">
+        <div class="splash-logo"></div>
+        <div class="preloader"></div>
+        <div class="msg-wait">{{_ll('AppLoading')}}</div>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+import $$ from 'dom7';
+export default {
+	data: function () {
+		return this.$app.methods.pageData({
+    });
+	},
+	on: {
+		pageInit: function(e, page) {
+			// app.preloader.showIn(".page.blank .block");
+		}
+	}
+}
+</script>

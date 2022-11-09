@@ -1,0 +1,6 @@
+export DEVELOPER_NAME="Techibits"
+export APP_BUNDLE_ID="com.weboxsolutions.apps.homesociety"
+export APP_RELEASE_VERSION="2.0.0"
+# if not defined, media is loaded from "<api domain>/content" folder
+export MEDIA_HOSTING="https://i.ibb.co/"
+export IMAGEBB_API_KEY="8ff0e875c16baa7bcd7134ca905e798c"

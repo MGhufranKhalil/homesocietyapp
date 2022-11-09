@@ -1,0 +1,254 @@
+<template>
+<div class="page add-notice transparent" data-name="add-notice" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{title}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="list no-margin">
+      <ul>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('NoticeType')}}</div>
+              <div class="item-input-wrap">
+                <select name="type">
+                  <option value=" ">- {{_ll('Select')}} -</option>
+                  <option value="general" {{#js_if "this.notice.type == 'general'"}} selected {{/js_if}}>General</option>
+                  <option value="warning" {{#js_if "this.notice.type == 'warning'"}} selected {{/js_if}}>Warning</option>
+                  <option value="emergency" {{#js_if "this.notice.type == 'emergency'"}} selected {{/js_if}}>Emergency</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Subject')}}</div>
+              <div class="item-input-wrap">
+                <input type="text" name="title" placeholder="" maxlength="50" value="{{notice.title}}" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="align-top">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Details')}}</div>
+              <div class="item-input-wrap">
+                <textarea name="details" placeholder="" style="height:32vh">{{trim notice.details}}</textarea>
+              </div>
+            </div>
+          </div>
+        </li>
+        {{#unless isEdit}}
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('NoticeExpiryDate')}}</div>
+              <div class="item-input-wrap">
+                <input type="text" name="expires" placeholder="" id="expiry-date" />
+              </div>
+            </div>
+          </div>
+        </li>
+        {{/unless}}
+        <li class="item-content item-input">
+		      <div class="item-inner">
+		        <div class="item-title item-label">{{_ll('NoticeMedia')}}</div>
+						<div class="item-input-wrap no-hairline attachment">
+              {{#js_if "this.selectedFilename.length"}}
+							<span class="upload-filename">{{selectedFilename}}</span>
+							{{else}}
+                {{#js_if "this.notice.media"}}
+                  <img src="{{ notice.media }}" width="100%" />
+                {{else}}
+							  <!--span class="upload-filename placeholder">{{../_ll('NoFileChoosen')}}</span-->
+                {{/if}}
+							{{/js_if}}
+		          <div class="row">
+                <div class="col-50"><a class="button button-fill btn-upload color-purple" href="#" @click="selectFile" accept="image/*;capture=camera">
+                  {{_ll('ChooseFile')}}
+                </a></div>
+                <div class="col-50"><a class="button button-fill btn-camera color-orange" href="#" @click="captureCameraImage" accept="*">
+                  {{_ll('TakePicture')}}
+                </a></div>
+              </div>
+		        </div>
+		      </div>
+		    </li>
+      </ul>
+      <div class="row">
+        <div class="col-5 small-20 medium-30 large-30"></div>
+        <div class="col-90 small-60 medium-40 large-40 block margin">
+          <a href="#" class="button button-large button-fill button-raised" @click="submit">{{#if isEdit}} {{_ll('UpdateNotice')}} {{else}} {{_ll('AddNotice')}} {{/if}}</a>
+        </div>
+        <div class="col-5 small-20 medium-30 large-30"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+  import Util from '../js/util.js';
+  import Config from '../js/config.js';
+  import Cache from '../js/cache.js';
+
+  let noticePage = null;
+  let selectedFile = null;
+
+  const successCallback = (res) => {
+    const isEdit = noticePage.$route.params.id;
+    app.preloader.hide();
+    Alerts.success(isEdit ? _ll('NoticeUpdated') : _ll('NoticeAdded'));
+    noticePage.$setState({ noticeAdded: true });
+    app.methods.goBack();
+  };
+
+  const errorCallback = (error) => {
+    app.preloader.hide();
+    Alerts.error(error.message || _ll('SubmitFailed'));
+  };
+
+  export default {
+  	data: function () {
+      const id = this.$route.params.id;
+  		return this.$app.methods.pageData({
+        title: id ? _ll('EditNotice') : _ll('AddNotice'),
+        notice: {},
+        noticeAdded: false,
+        selectedFilename: '',
+        isEdit: id
+      });
+  	},
+  	methods: {
+      submit: function() {
+        const isEdit = this.$route.params.id;
+        app.preloader.show();
+  			const data = {
+          type: $$(".page.add-notice [name=type]").val(),
+  				title: $$(".page.add-notice [name=title]").val(),
+          details: $$(".page.add-notice [name=details]").val(),
+        };
+        if(isEdit) {
+          data.id = this.$route.params.id;
+        } else {
+          data.expires = $$(".page.add-notice [name=expires]").val();
+        }
+        if (selectedFile && selectedFile.uri) {
+          selectedFile.key = 'media';
+					var url = Config.api + (isEdit ? "notices/update" : "notices/add");
+					app.methods.multipartRequest(url, selectedFile, data, successCallback, errorCallback);
+				} else {
+          const method = isEdit ? 'update_notice' : 'add_notice';
+          (Api[method])(data).then(successCallback).catch(errorCallback);
+        }
+      },
+      selectFile: function() {
+        chooser.getFile().then(function(file) {
+					if (file && file.uri) {
+						var mime = Util.getMimeType(file.name);
+						if (['image/gif', 'image/jpg', 'image/jpeg', 'image/png'].indexOf(mime) == -1) {
+							selectedFile = null;
+							noticePage.$setState({
+								selectedFilename: ''
+							});
+							app.methods.notify(_ll('InvalidFileType'));
+						} else {
+							selectedFile = file;
+							noticePage.$setState({
+								selectedFilename: file.name
+							});
+						}
+					} else {
+						selectedFile = null;
+						noticePage.$setState({
+							selectedFilename: ''
+						});
+					}
+				});
+      },
+      captureCameraImage: function() {
+        navigator.camera.getPicture(function(file) {
+					selectedFile = {
+						uri: file,
+						name: Util.fileNameFromPath(file),
+						mimeType: Util.getMimeType(file)
+          };
+					noticePage.$setState({
+						selectedFilename: selectedFile.name
+					});
+				}, function(error) {
+          Alerts.error(error);
+					selectedFile = null;
+					noticePage.$setState({
+						selectedFilename: ''
+					});
+				}, {
+					quality: 50,
+					destinationType: Camera.DestinationType.FILE_URI
+				});
+      }
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        noticePage = this;
+        setTimeout(function() {
+          var noticeCal = app.calendar.create({
+            locale: DB.get('lang') == 'ur' ? 'ur' : 'en',
+            inputEl: '#expiry-date',
+            openIn: 'popover',
+            dateFormat: "dd-MM-yyyy",
+            on: {
+              dayClick: function () {
+                noticeCal.close();
+              }
+            }
+            // dateFormat: { weekday: 'long', month: 'long', day: '2-digit', year: 'numeric' },
+          });
+        }, 500);
+        const id = this.$route.params.id;
+        if(id) {
+          const notices = Cache.get('notices', []);
+          const notice = notices.find(n => n.id == id);
+          noticePage.$setState({
+            notice: notice
+          });
+          /*app.preloader.show();
+          Api.get_notice(id).then(function(res) {
+            if(!res.data.success) {
+              throw new Error('Network issue');
+            }
+            noticePage.$setState({
+              data: res.data.data
+            });
+            app.preloader.hide();
+          }).catch(function(error) {
+            app.preloader.hide();
+            Alerts.error(error.message);
+            app.views.current.back();
+          });*/
+        }
+      },
+      pageAfterOut: function() {
+        if(this.noticeAdded) {
+          setTimeout(function() { app.views[0].router.refreshPage(); }, 50);
+        }
+      }
+  	}
+  };
+  </script>

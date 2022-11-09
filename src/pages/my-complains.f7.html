@@ -1,0 +1,77 @@
+<template>
+<div class="page my-complaints" data-name="my-complaints" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('MyComplaints')}}</div>
+    </div>
+  </div>
+  <div class="page-content" data-ptr-distance="55" data-ptr-mousewheel="true">
+    <!--div class="ptr-preloader">
+      <div class="preloader"></div>
+      <div class="ptr-arrow"></div>
+    </div-->
+    {{#each list}}
+    <a class="card complaint-card" href="/complaint/{{this.id}}">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="{{ this.status }} si-{{ this.status }}"></i>
+        </div>
+        <div class="card-name">{{escapeHTML this.title}}</div>
+        <div class="card-date">{{timeAgo this.created_at}}</div>
+      </div>
+      <div class="card-content card-content-padding">{{nl2br this.details}}</div>
+      <div class="card-footer">
+      </div>
+    </a>
+    {{/each}}
+  </div>
+  <!--div class="fab fab-right-bottom">
+    <a href="/add-complaint/">
+      <i class="icon f7-icons">plus</i>
+    </a>
+  </div-->
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        list: []
+  		});
+  	},
+  	methods: {
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        Api.get_my_complains().then(function(res) {
+          if(!res.data.success) {
+            throw new Error('Network issue');
+          }
+  				self.$setState({
+            list: res.data.data
+          }, function() {
+            /*var iconTooltip = self.$app.tooltip.create({
+              targetEl: '.complaint-card .card-icon'
+            });*/
+          });
+  			}).catch(function(error) {
+          Alerts.error(error.message);
+        });
+  		},
+      pageBeforeIn: function(e, page) {
+        $$('.toolbar').addClass("hidden");
+      }
+  	}
+  };
+  </script>

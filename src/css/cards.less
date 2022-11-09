@@ -1,0 +1,62 @@
+.card {
+  .card-header {
+    display: block;
+    padding: 10px;
+    .card-name {
+      font-size: 17px;
+      font-weight: 500;
+    }
+    .card-date {
+      font-size: 13px;
+      color: #8e8e93;
+    }
+  }
+  .card-icon {
+    [class^="si-"]:before, [class*=" si-"]:before {
+      margin-top: 0.2em;
+    }
+    .general {
+      color: var(--f7-color-lightblue);
+    }
+    .warning {
+      color: var(--f7-color-orange);
+    }
+    .emergency {
+      color: var(--f7-color-red);
+    }
+    .vote {
+      color: var(--f7-color-purple);
+    }
+    .new {
+      color: var(--f7-color-purple-tint);
+    }
+    .pending {
+      color: var(--f7-color-orange);
+    }
+    .complete {
+      color: var(--f7-color-green);
+    }
+    .onhold {
+      color: var(--f7-color-red);
+    }
+  }
+  .card-footer {
+    flex-wrap: wrap;
+    .button {
+      margin: 10px 0;
+    }
+    .full {
+      flex: 0 0 100%;
+    }
+  }
+}
+
+/* when a full card is a link, fix some styles */
+a.card {
+  overflow: hidden;
+  display: block;
+  color: var(--f7-color-black);
+  &.active-state {
+    opacity: 0.6;
+  }
+}

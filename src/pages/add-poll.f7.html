@@ -1,0 +1,177 @@
+<template>
+<div class="page add-poll transparent" data-name="add-poll" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('AddVotingPoll')}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="list no-margin">
+      <ul>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Title')}}</div>
+              <div class="item-input-wrap">
+                <input type="text" name="title" placeholder="" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="align-top">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Details')}}</div>
+              <div class="item-input-wrap">
+                <textarea name="details" placeholder="" style="height:28vh"></textarea>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('PollExpiryDate')}}</div>
+              <div class="item-input-wrap">
+                <input type="text" name="expires" placeholder="" id="expiry-date" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content">
+            <div class="item-inner">
+              <div class="item-title">
+                <span class="item-label">{{_ll('VotingOptions')}}</span>
+              </div>
+              <div class="item-after">
+                <a href="#" class="button button-fill button-raised add-choice" @click="addChoice">{{_ll('AddChoice')}}</a>
+              </div>
+            </div>
+          </div>
+        </li>
+				<li class="choice">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-input-wrap">
+                <input type="text" name="choices[]" placeholder="" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="choice">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-input-wrap">
+                <input type="text" name="choices[]" placeholder="" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="choice new choice-template">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-input-wrap">
+                <input type="text" name="choices[]" placeholder="" />
+              </div>
+            </div>
+            <div class="item-after">
+              <a href="#" class="remove-choice"><i class="si-cancel-circled"></i></a>
+            </div>
+          </div>
+        </li>
+      </ul>
+      <div class="block margin row">
+  			<div class="col-10"></div>
+        <div class="col-80">
+  			    <a href="#" class="button button-large button-fill button-raised" @click="submit">{{_ll('AddVotingPoll')}}</a>
+  			</div>
+        <div class="col-10"></div>
+  		</div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({});
+  	},
+  	methods: {
+      addChoice: function() {
+        let choice = $$(document.querySelector('.page.add-poll .choice-template').cloneNode(true, true));
+        choice.removeClass("choice-template");
+        choice.find(".remove-choice").on('click', function(e) {
+          $$(e.target).parents(".choice").remove();
+          $$(".page.add-poll .add-choice").show();
+        });
+        const count = $$(".page.add-poll .choice").length;
+        // choice.find("input").attr("placeholder", `Option ${count}`);
+        $$(".page.add-poll .list ul").append(choice);
+        if(count > 4) {
+          $$(".page.add-poll .add-choice").hide();
+        }
+      },
+      submit: function() {
+        const choices = [];
+        $$(".page.add-poll [name='choices[]']").each(function() {
+          const val = $$(this).val();
+          if(val.length) {
+            choices.push(val);
+          }
+        });
+        app.preloader.show();
+  			const data = {
+  				title: $$(".page.add-poll [name=title]").val(),
+          details: $$(".page.add-poll [name=details]").val(),
+          expires: $$(".page.add-poll [name=expires]").val(),
+          choices: choices
+        };
+  			Api.add_poll(data).then(function(res) {
+          app.preloader.hide();
+          Alerts.success(_ll('PollAdded'));
+          $$(".page.add-poll [name=title]").val('');
+          $$(".page.add-poll [name=details]").val('');
+          $$(".page.add-poll [name=expires]").val('');
+          $$(".page.add-poll .choice.new").remove();
+          $$(".page.add-poll .choice").find("input").val("");
+          app.methods.goBack();
+  			}).catch(function(error) {
+          app.preloader.hide();
+          Alerts.error(error.message || _ll('SubmitFailed'));
+        });
+  		}
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        setTimeout(function() {
+          var pollCal = app.calendar.create({
+            locale: DB.get('lang') == 'ur' ? 'ur' : 'en',
+            inputEl: '#expiry-date',
+            openIn: 'popover',
+            dateFormat: "dd-MM-yyyy",
+            on: {
+              dayClick: function () {
+                pollCal.close();
+              }
+            }
+            // dateFormat: { weekday: 'long', month: 'long', day: '2-digit', year: 'numeric' },
+          });
+        }, 500);
+  		}
+  	}
+  };
+  </script>

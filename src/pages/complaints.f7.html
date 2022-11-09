@@ -1,0 +1,118 @@
+<template>
+<div class="page complaints" data-name="complaints" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="panel-open" data-panel="left">
+          <i class="si-menu"></i>
+        </a>
+      </div>
+      <div class="title">{{_ll('Complaints')}}</div>
+    </div>
+  </div>
+  <div class="page-content ptr-content" data-ptr-distance="55" data-ptr-mousewheel="true">
+    <div class="ptr-preloader">
+      <div class="preloader"></div>
+      <div class="ptr-arrow"></div>
+    </div>
+    {{#each list}}
+    <a class="card complaint-card" href="/complaint/{{this.id}}">
+      <div class="card-header">
+        <div class="card-icon" data-tooltip="Button tooltip text">
+          <i class="{{ this.status }} si-{{ this.status }}"></i>
+        </div>
+        <div class="card-name">{{escapeHTML this.title}}</div>
+        <div class="card-date">{{timeAgo this.created_at}}</div>
+        {{#js_if 'this.private == 1'}} <span class="private">{{../../_ll('Private')}}</span> {{/js_if}}
+      </div>
+      <div class="card-content">
+        <p class="block block-strong">{{nl2br this.details}}</p>
+        {{#if ../showMedia}}
+        {{#js_if "../media"}}
+          <img src="{{ ../media }}" 
+              data-title="{{escapeHTML this.title}}"
+              width="100%"
+              class="xlazy-lazy-fade-in"
+          />
+        {{/js_if}}
+        {{/if}}
+      </div>
+      <div class="card-footer">
+        <span></span>
+        <span>{{this.house_number}}, {{this.created_by}}</span>
+      </div>
+    </a>
+    {{/each}}
+  </div>
+  {{#unless showBadge}}
+  <div class="fab fab-right-bottom">
+    <a href="/add-complaint/" data-view="#view-complaints">
+      <i class="icon f7-icons">bubble_left</i>
+    </a>
+  </div>
+  {{/unless}}
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import Cache from '../js/cache.js';
+  import Util from '../js/util.js';
+  import Config from '../js/config.js';
+
+  let complaintsPage = null;
+  let complaintsPtr = null;
+
+  const loadComplaints = (event) => {
+    Api.get_complains().then(function(res) {
+      if(!res.data.success) {
+        throw new Error('Network issue');
+      }
+      if(event) app.ptr.done(complaintsPtr);
+      complaintsPage.$setState({
+        list: res.data.data
+      }, function() {
+        /*var iconTooltip = self.$app.tooltip.create({
+          targetEl: '.complaint-card .card-icon'
+        });*/
+      });
+      Cache.set('complaints', res.data.data);
+    }).catch(function(error) {
+      if(event) {
+        app.ptr.done(complaintsPtr);
+        Alerts.error(error);
+      }
+    });
+  };
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        list: [],
+        showBadge: Util.can('response'),
+        showMedia: Number(Config.version.replace(/\./g, '')) >= 106
+  		});
+  	},
+  	methods: {
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        complaintsPage = this;
+        complaintsPtr = $$('.page.complaints .ptr-content');
+        complaintsPtr.on('ptr:refresh', loadComplaints);
+        setTimeout(function () {
+          page.router.clearPreviousHistory();
+          complaintsPage.$setState({
+            list: Cache.get('complaints', [])
+          });
+          loadComplaints();
+        }, 10);
+  		},
+      pageBeforeIn: function(e, page) {
+        $$('.toolbar').removeClass("hidden");
+      }
+  	}
+  };
+  </script>

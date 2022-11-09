@@ -1,0 +1,180 @@
+<template>
+<div class="page workers directory" data-name="workers" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('SocietyWorkers')}}</div>
+      <div class="subnavbar">
+        <!-- Searchbar with auto init -->
+        <form class="searchbar">
+          <div class="searchbar-inner">
+            <div class="searchbar-input-wrap">
+              <input type="search" placeholder="{{_ll('WorkerSearchPlaceholder')}}">
+              <i class="searchbar-icon"></i>
+              <span class="input-clear-button"></span>
+            </div>
+            <span class="searchbar-disable-button if-not-aurora">Cancel</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="page-content ptr-content" data-ptr-distance="55" data-ptr-mousewheel="true">
+    <div class="ptr-preloader">
+      <div class="preloader"></div>
+      <div class="ptr-arrow"></div>
+    </div>
+    <div class="searchbar-backdrop"></div>
+    <div class="directory-list">
+      {{#each list}}
+      <div class="card card-outline searchbar-found">
+        <div class="card-content card-content-padding">
+          <p class="card-name"><i class="si-user-circle"></i>{{escapeHTML this.name}}</p>
+          <p class="card-name"></i>{{escapeHTML this.type}}</p>
+          {{#js_if "this.phone_number"}}
+            <p class="card-number"><i class="si-phone"></i>
+              {{escapeHTML this.phone_number}}
+            </p>
+          {{/js_if}}
+          {{#js_if "this.phone_number2"}}
+            <p class="card-number"><i class="si-phone"></i>
+              {{escapeHTML this.phone_number2}}
+            </p>
+          {{/js_if}}
+          {{#js_if "this.phone_number3"}}
+            <p class="card-number"><i class="si-phone"></i>
+              {{escapeHTML this.phone_number3}}
+            </p>
+          {{/js_if}}
+          {{#js_if "this.whatsapp"}}
+            <p class="card-number"><i class="si-whatsapp"></i>
+              {{escapeHTML this.whatsapp}}
+            </p>
+          {{/js_if}}
+          {{#if this.notes}}
+          <p class="block notes">{{nl2br this.notes}}</p>
+          {{/if}}
+          {{#js_if "this.image"}}
+            <a
+              class="card-image"
+              href="#"
+              @click="openPhotoViewer"
+              data-title="{{escapeHTML this.name}}"
+              data-src="{{ this.image }}"
+              style="background-image:url({{ this.image }})"
+            >
+            </a>
+        {{/js_if}}
+        </div>
+        {{#if ../editable}}
+        <div class="block block-strong">
+          <a class="link edit-btn" href="/edit-worker/{{this.id}}">{{../../_ll('Edit')}}</a>
+        </div>
+        {{/if}}
+      </div>
+      {{/each}}
+    </div>
+  </div>
+  {{#if editable}}
+  <div class="fab fab-right-bottom">
+    <a class="link" href="/add-worker/" data-view="#view-information">
+      <i class="icon f7-icons">plus</i>
+    </a>
+  </div>
+  {{/if}}
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+  import Util from '../js/util.js';
+  import Cache from '../js/cache.js';
+
+  let workersPage = null;
+  let workersPtr = null;
+
+  const loadDirectory = (event) => {
+    Api.get_workers().then(function(res) {
+      if(!res.data.success) {
+        throw new Error('Network issue');
+      }
+      if(event) app.ptr.done(workersPtr);
+      workersPage.$setState({
+        list: res.data.data
+      });
+      Cache.set('workers', res.data.data);
+    }).catch(function(error) {
+      if(event) {
+        app.ptr.done(workersPtr);
+        Alerts.error(error);
+      }
+    });
+  };
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        list: [],
+        editable: Util.can('workers')
+  		});
+  	},
+  	methods: {
+      openPhotoViewer: function(e) {
+        const img = $$(e.target).attr("data-src");
+        const title = $$(e.target).attr("data-title");
+        var photoViewer = app.photoBrowser.create({
+          photos : [{
+            url: img,
+            caption: title
+          }],
+          theme: 'dark',
+          type: 'standalone',
+          toolbar: false,
+          navbar: true
+        });
+        photoViewer.open();
+      }
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        workersPage = this;
+        workersPtr = $$('.workers .ptr-content');
+        workersPtr.on('ptr:refresh', loadDirectory);
+        setTimeout(function () {
+          // delay loading from cache to improve performance
+          workersPage.$setState({
+            list: Cache.get('workers', []),
+          });
+          loadDirectory();
+        }, 10);
+
+        var searchbar = app.searchbar.create({
+          el: '.page.workers .searchbar',
+          searchContainer: '.page.workers .directory-list',
+          searchItem: '.card',
+          searchIn: '.card-name, .card-number, .card-house',
+          on: {
+            search(sb, query, previousQuery) {
+              // console.log(query, previousQuery);
+            }
+          }
+        });
+      },
+      pageReinit: function(e, page) {
+        app.ptr.refresh(workersPtr);
+      },
+      
+      pageBeforeIn: function(e, page) {
+        $$('.toolbar').removeClass("hidden");
+      }
+  	}
+  };
+  </script>

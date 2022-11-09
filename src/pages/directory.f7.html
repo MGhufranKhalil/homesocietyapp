@@ -1,0 +1,126 @@
+<template>
+<div class="page directory" data-name="directory" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('ContactDirectory')}}</div>
+      <div class="subnavbar">
+        <!-- Searchbar with auto init -->
+        <form class="searchbar">
+          <div class="searchbar-inner">
+            <div class="searchbar-input-wrap">
+              <input type="search" placeholder="{{_ll('SearchPlaceholder')}}">
+              <i class="searchbar-icon"></i>
+              <span class="input-clear-button"></span>
+            </div>
+            <span class="searchbar-disable-button if-not-aurora">Cancel</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="page-content ptr-content" data-ptr-distance="55" data-ptr-mousewheel="true">
+    <div class="ptr-preloader">
+      <div class="preloader"></div>
+      <div class="ptr-arrow"></div>
+    </div>
+    <div class="searchbar-backdrop"></div>
+    <div class="directory-list">
+      {{#each list}}
+      <div class="card card-outline searchbar-found {{this.designation}}">
+        <div class="card-content card-content-padding">
+          <p class="card-name">{{escapeHTML this.title}} {{escapeHTML this.name}}</p>
+          <p class="card-house">{{this.house_number}}</p>
+          {{#if phone_number}}
+            <p class="card-number"><i class="si-phone"></i>
+              {{escapeHTML this.phone_number}}
+            </p>
+          {{/if}}
+          {{#if this.whatsapp}}
+          <p><i class="si-whatsapp"></i>{{escapeHTML this.whatsapp}}</p>
+          {{/if}}
+        </div>
+        {{#if ../editable}}
+        <div class="block block-strong">
+          <a class="edit-btn" href="/edit-contact/{{this.house_number}}">{{../../_ll('EditContact')}}</a>
+        </div>
+        {{/if}}
+      </div>
+      {{/each}}
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+  import Util from '../js/util.js';
+  import Cache from '../js/cache.js';
+
+  let directoryPage = null;
+  let directoryPtr = null;
+
+  const loadDirectory = (event) => {
+    Api.get_directory().then(function(res) {
+      if(!res.data.success) {
+        throw new Error('Network issue');
+      }
+      if(event) app.ptr.done(directoryPtr);
+      directoryPage.$setState({
+        list: res.data.data
+      });
+      Cache.set('directory', res.data.data);
+    }).catch(function(error) {
+      if(event) app.ptr.done(directoryPtr);
+      Alerts.error(error);
+    });
+  };
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        list: [],
+        editable: Util.can('directory')
+  		});
+  	},
+  	methods: {
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        directoryPage = this;
+        directoryPtr = $$('.directory .ptr-content');
+        directoryPtr.on('ptr:refresh', loadDirectory);
+        setTimeout(function () {
+          // delay loading from cache to improve performance
+          directoryPage.$setState({
+            list: Cache.get('directory', [])
+          });
+          loadDirectory();
+        }, 10);
+
+        var searchbar = app.searchbar.create({
+          el: '#view-information .searchbar',
+          searchContainer: '.directory-list',
+          searchItem: '.card',
+          searchIn: '.card-name, .card-number, .card-house',
+          on: {
+            search(sb, query, previousQuery) {
+              // console.log(query, previousQuery);
+            }
+          }
+        });
+      },
+      pageReinit: function(e, page) {
+        app.ptr.refresh(directoryPtr);
+      }
+  	}
+  };
+  </script>

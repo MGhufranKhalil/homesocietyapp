@@ -1,0 +1,299 @@
+<template>
+<div class="page edit-contact transparent" data-name="edit-contact" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('EditContact')}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="list no-margin">
+      <ul>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Status')}}</div>
+              <div class="item-input-wrap">
+                <select name="active" required>
+                  <option value="1" selected>Active</option>
+                  <option value="0">Inactive</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Designation')}}</div>
+              <div class="item-input-wrap">
+                <select name="designation">
+                  <option value=" ">- Select if applicable -</option>
+                  <option value="President" {{#js_if "../contact.designation == 'president'"}} selected {{/js_if}}>President</option>
+                  <option value="vicepresident" {{#js_if "../contact.designation == 'vicepresident'"}} selected {{/js_if}}>Vice President</option>
+                  <option value="secretary" {{#js_if "../contact.designation == 'secretary'"}} selected {{/js_if}}>Secretary</option>
+                  <option value="generalsecretary" {{#js_if "../contact.designation == 'generalsecretary'"}} selected {{/js_if}}>General Secretary</option>
+                  <option value="jointsecretary" {{#js_if "../contact.designation == 'jointsecretary'"}} selected {{/js_if}}>Joint Secretary</option>
+                  <option value="finance" {{#js_if "../contact.designation == 'finance'"}} selected {{/js_if}}>Finance</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('NameTitle')}}</div>
+              <div class="item-input-wrap flex">
+                <select name="title">
+                  <option value="Mr." {{#js_if "../contact.title == 'Mr.'"}} selected {{/js_if}}>Mr.</option>
+									<option value="Mrs." {{#js_if "../contact.title == 'Mrs.'"}} selected {{/js_if}}>Mrs.</option>
+									<option value="Miss" {{#js_if "../contact.title == 'Miss'"}} selected {{/js_if}}>Miss</option>
+									<option value="Dr." {{#js_if "../contact.title == 'Dr.'"}} selected {{/js_if}}>Dr.</option>
+                </select>
+								<input type="text" name="name" placeholder="" required value="{{ contact.name }}" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <!--li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('PhoneNumber')}}</div>
+              <div class="item-input-wrap">
+                <input type="tel" name="phone_number" value="{{ contact.phone_number }}" required placeholder="e.g. 03331234567"/>
+              </div>
+            </div>
+          </div>
+        </li-->
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('WhatsAppNumber')}}</div>
+              <div class="item-input-wrap">
+                <input type="tel" name="whatsapp" value="{{ contact.whatsapp }}"  placeholder="e.g. 03332345678"/>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Password')}}</div>
+              <div class="item-input-wrap">
+                <input type="password" name="password" placeholder="Leave empty if unchanged"/>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content">
+            <div class="item-inner">
+              <div class="item-title">
+                <span class="item-label">{{_ll('AllowExpense')}}</span>
+              </div>
+              <div class="item-after">
+                <label class="toggle toggle-init">
+                  <input type="checkbox" name="expense">
+                  <span class="toggle-icon"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="item-content">
+            <div class="item-inner">
+              <div class="item-title">
+                <span class="item-label">{{_ll('AllowCollection')}}</span>
+              </div>
+              <div class="item-after">
+                <label class="toggle toggle-init">
+                  <input type="checkbox" name="collection">
+                  <span class="toggle-icon"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="item-content">
+            <div class="item-inner">
+              <div class="item-title">
+                <span class="item-label">{{_ll('AllowResponse')}}</span>
+              </div>
+              <div class="item-after">
+                <label class="toggle toggle-init">
+                  <input type="checkbox" name="response">
+                  <span class="toggle-icon"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="item-content">
+            <div class="item-inner">
+              <div class="item-title">
+                <span class="item-label">{{_ll('AllowDirectory')}}</span>
+              </div>
+              <div class="item-after">
+                <label class="toggle toggle-init">
+                  <input type="checkbox" name="directory">
+                  <span class="toggle-icon"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="item-content">
+            <div class="item-inner">
+              <div class="item-title">
+                <span class="item-label">{{_ll('AllowNotice')}}</span>
+              </div>
+              <div class="item-after">
+                <label class="toggle toggle-init">
+                  <input type="checkbox" name="notice">
+                  <span class="toggle-icon"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="item-content">
+            <div class="item-inner">
+              <div class="item-title">
+                <span class="item-label">{{_ll('AllowPolls')}}</span>
+              </div>
+              <div class="item-after">
+                <label class="toggle toggle-init">
+                  <input type="checkbox" name="poll">
+                  <span class="toggle-icon"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="item-content">
+            <div class="item-inner">
+              <div class="item-title">
+                <span class="item-label">{{_ll('AllowPlanning')}}</span>
+              </div>
+              <div class="item-after">
+                <label class="toggle toggle-init">
+                  <input type="checkbox" name="planning">
+                  <span class="toggle-icon"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="item-content">
+            <div class="item-inner">
+              <div class="item-title">
+                <span class="item-label">{{_ll('AllowWorkers')}}</span>
+              </div>
+              <div class="item-after">
+                <label class="toggle toggle-init">
+                  <input type="checkbox" name="workers">
+                  <span class="toggle-icon"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </li>
+        <!--li class="align-top">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Notes')}}</div>
+              <div class="item-input-wrap">
+                <textarea name="notes" placeholder="" style="height:10vh"></textarea>
+              </div>
+            </div>
+          </div>
+        </li-->
+      </ul>
+      <div class="block margin row">
+  			<div class="col-10"></div>
+        <div class="col-80">
+  			     <a href="#" class="button button-large button-fill button-raised" @click="submit">{{_ll('UpdateContact')}}</a>
+  			</div>
+        <div class="col-10"></div>
+  		</div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+
+  let editContactPage = null;
+
+  const loadContact = () => {
+    const id = editContactPage.$route.params.id;
+    Api.get_contact({id: id}).then(function(res) {
+      if(!res.data.success) {
+        throw new Error('Network issue');
+      }
+      editContactPage.$setState({
+        contact: res.data.data
+      });
+      const roles = res.data.data.roles;
+      if(roles.indexOf('expense') >= 0) $$(".page.edit-contact [name=expense]").attr("checked", "checked");
+      if(roles.indexOf('collection') >= 0) $$(".page.edit-contact [name=collection]").attr("checked", "checked");
+      if(roles.indexOf('directory') >= 0) $$(".page.edit-contact [name=directory]").attr("checked", "checked");
+      if(roles.indexOf('response') >= 0) $$(".page.edit-contact [name=response]").attr("checked", "checked");
+      if(roles.indexOf('notice') >= 0) $$(".page.edit-contact [name=notice]").attr("checked", "checked");
+      if(roles.indexOf('poll') >= 0) $$(".page.edit-contact [name=poll]").attr("checked", "checked");
+      if(roles.indexOf('planning') >= 0) $$(".page.edit-contact [name=planning]").attr("checked", "checked");
+      if(roles.indexOf('workers') >= 0) $$(".page.edit-contact [name=workers]").attr("checked", "checked");
+    }).catch(function(error) {
+      Alerts.error(error.message);
+    });
+  };
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        contact: {},
+        roles: [],
+      });
+  	},
+  	methods: {
+      submit: function() {
+        const roles = [];
+        if ($$(".page.edit-contact [name=expense]:checked").length) roles.push('expense');
+        if ($$(".page.edit-contact [name=collection]:checked").length) roles.push('collection');
+        if ($$(".page.edit-contact [name=response]:checked").length) roles.push('response');
+        if ($$(".page.edit-contact [name=directory]:checked").length) roles.push('directory');
+        if ($$(".page.edit-contact [name=notice]:checked").length) roles.push('notice');
+        if ($$(".page.edit-contact [name=poll]:checked").length) roles.push('poll');
+        if ($$(".page.edit-contact [name=planning]:checked").length) roles.push('planning');
+        if ($$(".page.edit-contact [name=workers]:checked").length) roles.push('workers');
+  			const data = {
+          id: editContactPage.$route.params.id,
+          active: $$(".page.edit-contact [name=active]").val(),
+          title: $$(".page.edit-contact [name=title]").val(),
+          name: $$(".page.edit-contact [name=name]").val(),
+          //phone_number: $$(".page.edit-contact [name=phone_number]").val(),
+          whatsapp: $$(".page.edit-contact [name=whatsapp]").val(),
+          designation: $$(".page.edit-contact [name=designation]").val(),
+          password: $$(".page.edit-contact [name=password]").val(),
+          roles: roles
+  			};
+  			Api.update_contact(data).then(function(res) {
+          Alerts.success(_ll('ContactUpdated'));
+          app.views[2].router.back();
+  			}).catch(function(error) {
+          Alerts.error(error.message || _ll('SubmitFailed'));
+        });
+  		}
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        editContactPage = this;
+        loadContact();
+      }
+  	}
+  };
+  </script>

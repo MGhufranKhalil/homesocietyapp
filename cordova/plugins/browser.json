@@ -1,0 +1,73 @@
+{
+  "prepare_queue": {
+    "installed": [],
+    "uninstalled": []
+  },
+  "config_munge": {
+    "files": {}
+  },
+  "installed_plugins": {
+    "cordova-plugin-ios-xhr": {
+      "PACKAGE_NAME": "io.framework7.myapp"
+    },
+    "cordova-plugin-keyboard": {
+      "PACKAGE_NAME": "io.framework7.myapp"
+    },
+    "cordova-plugin-media": {
+      "PACKAGE_NAME": "io.framework7.myapp"
+    },
+    "cordova-plugin-media-capture": {
+      "PACKAGE_NAME": "io.framework7.myapp"
+    },
+    "cordova-plugin-os-call-number": {
+      "PACKAGE_NAME": "io.framework7.myapp"
+    },
+    "cordova-plugin-screen-orientation": {
+      "PACKAGE_NAME": "io.framework7.myapp"
+    },
+    "cordova-plugin-statusbar": {
+      "PACKAGE_NAME": "io.framework7.myapp"
+    },
+    "cordova-plugin-x-toast": {
+      "PACKAGE_NAME": "io.framework7.myapp"
+    },
+    "onesignal-cordova-plugin": {
+      "PACKAGE_NAME": "io.framework7.myapp"
+    },
+    "cordova-plugin-chooser": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-network-information": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-purchase": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-splashscreen": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-file-transfer": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-camera": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-device": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-androidx-adapter": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-webview-checker": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-file": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    }
+  },
+  "dependent_plugins": {
+    "es6-promise-plugin": {
+      "PACKAGE_NAME": "io.framework7.myapp"
+    }
+  }
+}

@@ -1,0 +1,103 @@
+<template>
+<div class="page guidelines" data-name="guidelines" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('Guidelines')}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="block-title"></div>
+    <div class="list media-list">
+      <ul>
+        {{#each list}}
+        <li>
+          <a class="item-link item-content" href="/guidelines/{{ this.id }}" data-view="#view-information">
+            <div class="item-inner">
+              <div class="item-title-row">
+                <div class="item-title">{{escapeHTML this.title}}</div>
+              </div>
+              <div class="item-subtitle">{{ ../_ll('InfoLastUpdated') }} {{dateOnly format="do MMMM yyyy" this.updated_at}}</div>
+            </div>
+          </a>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+  import Util from '../js/util.js';
+  import Cache from '../js/cache.js';
+
+  let guidelinesPage = null;
+  let guidelinesPtr = null;
+
+  const loadGuidelines = (event) => {
+    Api.get_guidelines().then(function(res) {
+      if(!res.data.success) {
+        throw new Error('Network issue');
+      }
+      if(event) app.ptr.done(guidelinesPtr);
+      guidelinesPage.$setState({
+        list: res.data.data
+      });
+      Cache.set('guidelines', res.data.data);
+    }).catch(function(error) {
+      if(event) app.ptr.done(guidelinesPtr);
+      Alerts.error(error.message);
+    });
+  };
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        list: []
+  		});
+  	},
+  	methods: {
+      openPhotoViewer: function(e) {
+        const img = $$(e.target).attr("data-src");
+        const title = $$(e.target).attr("data-title");
+        var photoViewer = app.photoBrowser.create({
+          photos : [{
+            url: img,
+            caption: title
+          }],
+          theme: 'dark',
+          type: 'standalone',
+          toolbar: false,
+          navbar: true
+        });
+        photoViewer.open();
+      }
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        guidelinesPage = this;
+        guidelinesPtr = $$('.guidelines .ptr-content');
+        guidelinesPtr.on('ptr:refresh', loadGuidelines);
+        setTimeout(function () {
+          guidelinesPage.$setState({
+            list: Cache.get('guidelines', []),
+          });
+          loadGuidelines();
+        }, 10);
+      },
+      pageReinit: function(e, page) {
+        app.ptr.refresh(guidelinesPtr);
+      }
+  	}
+  };
+</script>

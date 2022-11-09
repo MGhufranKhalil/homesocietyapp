@@ -1,0 +1,185 @@
+<template>
+<div class="page add-complaint transparent" data-name="add-complaint" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('AddComplaint')}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="list">
+      <ul>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Subject')}}</div>
+              <div class="item-input-wrap">
+                <input type="text" name="title" placeholder="" maxlength="50" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="align-top">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Details')}}</div>
+              <div class="item-input-wrap">
+                <textarea name="details" placeholder="" style="height:36vh"></textarea>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content">
+            <div class="item-inner">
+              <div class="item-title">
+                <span class="item-label">{{_ll('PrivateComplaint')}}</span>
+              </div>
+              <div class="item-after">
+                <label class="toggle toggle-init">
+                  <input type="checkbox" name="private">
+                  <span class="toggle-icon"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="item-content block block-strong no-margin">{{_ll('PrivateComplaintMsg')}}</div>
+        </li>
+        <li class="item-content item-input">
+		      <div class="item-inner">
+		        <div class="item-title item-label">{{_ll('NoticeMedia')}}</div>
+						<div class="item-input-wrap no-hairline attachment">
+              {{#js_if "this.selectedFilename.length"}}
+							<span class="upload-filename">{{selectedFilename}}</span>
+							{{else}}
+							<!--span class="upload-filename placeholder">{{../_ll('NoFileChoosen')}}</span-->
+							{{/js_if}}
+		          <div class="row">
+                <div class="col-50"><a class="button button-fill btn-upload color-purple" href="#" @click="selectFile" accept="image/*;capture=camera">
+                  {{_ll('ChooseFile')}}
+                </a></div>
+                <div class="col-50"><a class="button button-fill btn-camera color-orange" href="#" @click="captureCameraImage" accept="*">
+                  {{_ll('TakePicture')}}
+                </a></div>
+              </div>
+		        </div>
+		      </div>
+		    </li>
+      </ul>
+      <div class="row">
+        <div class="col-5 small-20 medium-30 large-30"></div>
+        <div class="col-90 small-60 medium-40 large-40 block margin">
+          <a href="#" class="button button-large button-fill button-raised" @click="submit">{{_ll('SubmitComplaint')}}</a>
+  			</div>
+        <div class="col-5 small-20 medium-30 large-30"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import Util from '../js/util.js';
+  import Config from '../js/config.js';
+
+  let thisPage = null;
+  let selectedFile = null;
+
+  const successCallback = (res) => {
+    app.preloader.hide();
+    Alerts.success(_ll('ComplaintSubmitted'));
+    app.methods.goBack();
+  };
+
+  const errorCallback = (error) => {
+    app.preloader.hide();
+    Alerts.error(error.message || _ll('SubmitFailed'));
+  };
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        selectedFilename: ''
+      });
+  	},
+  	methods: {
+      submit: function() {
+        app.preloader.show();
+  			const data = {
+  				title: $$(".page.add-complaint [name=title]").val(),
+  				details: $$(".page.add-complaint [name=details]").val(),
+          private: $$(".page.add-complaint [name=private]:checked").length == 1 ? 1 : 0
+        };
+        if (selectedFile && selectedFile.uri) {
+          selectedFile.key = 'media';
+          var url = Config.api + ("complains/add");
+					app.methods.multipartRequest(url, selectedFile, data, successCallback, errorCallback);
+				} else {
+          Api.add_complaint(data).then(successCallback).catch(errorCallback);
+        }
+  		},
+      selectFile: function() {
+        chooser.getFile().then(function(file) {
+					if (file && file.uri) {
+						var mime = Util.getMimeType(file.name);
+						if (['image/gif', 'image/jpg', 'image/jpeg', 'image/png'].indexOf(mime) == -1) {
+							selectedFile = null;
+							thisPage.$setState({
+								selectedFilename: ''
+							});
+							app.methods.notify(_ll('InvalidFileType'));
+						} else {
+							selectedFile = file;
+							thisPage.$setState({
+								selectedFilename: file.name
+							});
+						}
+					} else {
+						selectedFile = null;
+						thisPage.$setState({
+							selectedFilename: ''
+						});
+					}
+				});
+      },
+      captureCameraImage: function() {
+        navigator.camera.getPicture(function(file) {
+					selectedFile = {
+						uri: file,
+						name: Util.fileNameFromPath(file),
+						mimeType: Util.getMimeType(file)
+          };
+					thisPage.$setState({
+						selectedFilename: selectedFile.name
+          });
+				}, function(error) {
+          Alerts.error(error);
+					selectedFile = null;
+					thisPage.$setState({
+						selectedFilename: ''
+					});
+				}, {
+					quality: 50,
+					destinationType: Camera.DestinationType.FILE_URI
+				});
+      }
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        thisPage = this;
+      },
+      pageBeforeIn: function(e, page) {
+        $$('.toolbar').addClass("hidden");
+      }
+  	}
+  };
+  </script>

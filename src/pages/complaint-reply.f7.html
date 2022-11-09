@@ -1,0 +1,102 @@
+<template>
+<div class="page complaint-reply transparent" data-name="complaint-reply" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('ComplaintMessage')}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="list">
+      <ul>
+        <li class="align-top">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Message')}}</div>
+              <div class="item-input-wrap">
+                <textarea name="message" placeholder="" style="height:42vh"></textarea>
+              </div>
+            </div>
+          </div>
+        </li>
+        {{#if changeStatus}}
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('ChangeComplaintStatus')}}</div>
+              <div class="item-input-wrap flex">
+                <select name="status">
+									<option value="pending">Pending</option>
+									<option value="complete">Complete</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </li>
+        {{/if}}
+      </ul>
+      <div class="row">
+        <div class="col-5 small-20 medium-30 large-30"></div>
+        <div class="col-90 small-60 medium-40 large-40 block margin">
+          <a href="#" class="button button-large button-fill button-raised" @click="submit">{{_ll('SubmitComplaintReply')}}</a>
+  			</div>
+        <div class="col-5 small-20 medium-30 large-30"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import Util from '../js/util.js';
+
+  let complaintReplyPage = null;
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        status: null,
+        changeStatus: false
+      });
+  	},
+  	methods: {
+      submit: function() {
+        const id = complaintReplyPage.$route.params.id;
+  			const data = {
+  				id: id,
+  				message: $$(".page.complaint-reply [name=message]").val(),
+  				status: $$(".page.complaint-reply [name=status]").val(),
+  			};
+        app.preloader.show();
+  			Api.add_complaint_reply(data).then(function(res) {
+          app.preloader.hide();
+  				app.methods.goBack();
+  			}).catch(function(error) {
+          app.preloader.hide();
+          Alerts.error(error.message || _ll('SubmitFailed'));
+        });
+  		}
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        complaintReplyPage = this;
+        self.$setState({
+          status : complaintReplyPage.$route.params.status,
+          changeStatus: Util.can('response')
+        })
+      },
+      pageBeforeIn: function(e, page) {
+        $$('.toolbar').addClass("hidden");
+      }
+  	}
+  };
+  </script>

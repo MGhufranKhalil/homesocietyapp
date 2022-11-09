@@ -1,0 +1,140 @@
+<template>
+<div class="page complaint-details" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('ComplaintDetails')}} #{{id}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    {{#js_if "this.complaint && this.complaint.title"}}
+      <div class="card complaint-card" style="background-color:{{str2color complaint s="25" l="95"}}">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="{{ complaint.status }} si-{{ complaint.status }}"></i>
+          </div>
+          <div class="card-name">{{escapeHTML complaint.title}}</div>
+          {{#if complaint.updated_at}}
+            <div class="card-date">{{_ll('LastUpdate')}}: {{timeAgo complaint.updated_at}}</div>
+          {{else}}
+            <div class="card-date">{{_ll('Created')}}: {{timeAgo complaint.created_at}}</div>
+          {{/if}} 
+          {{#js_if 'this.complaint.private == 1'}}
+            <span class="private">{{../../_ll('Private')}}</span>
+          {{/js_if}}
+        </div>
+        <div class="card-content">
+          <p class="block block-strong">{{nl2br complaint.details}}</p>
+          {{#js_if "../showMedia && ../complaint.media"}}
+            <a href="#" class="button" @click="openPhotoViewer" data-src="{{ complaint.media }}" data-title="{{escapeHTML complaint.title}}">{{_ll('ViewAttachment')}}</a>
+          {{/js_if}}
+        </div>
+        <div class="card-footer">
+          <!--span class="full">{{_ll('Status')}}: {{complaint.status}}</span><br/-->
+          {{#if complaint.updated_at}}
+          <span class="full">{{_ll('Created')}}: {{timeAgo complaint.created_at}}</span><br/>
+          {{/if}}
+          <span class="full">{{_ll('Complainant')}}: {{complaint.house_number}}, {{complaint.created_by}}</span>
+        </div>
+      </div>
+      {{#each messages}}
+      <div class="card complaint-card" style="background-color:{{str2color this.created_by s="25" l="95"}}">
+        <div class="card-content card-content-padding">{{nl2br this.message}}</div>
+        <div class="card-footer">
+          <span class="full">{{timeAgo this.created_at}}</span>
+          <span class="full">{{../_ll('From')}}: {{this.created_by}}</span>
+        </div>
+      </div>
+      {{/each}}
+      {{#js_if "this.complaint && this.complaint.status != 'complete'"}}
+      <div class="row">
+        <div class="col-5 small-20 medium-30 large-30"></div>
+        <div class="col-90 small-60 medium-40 large-40 block margin">
+          <a href="/complaint-reply/{{ id }}/{{ complaint.status }}" class="button button-large button-fill button-raised">{{_ll('AddComplaintReply')}}</a>
+        </div>
+        <div class="col-5 small-20 medium-30 large-30"></div>
+      </div>
+      {{/js_if}}
+    {{else}}
+      <div class="preloader empty-loader"></div>
+    {{/js_if}}
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import Config from '../js/config.js';
+
+  let complaintDetailPage = null;
+
+  const loadComplaint = () => {
+    const id = complaintDetailPage.$route.params.id;
+    Api.get_complain(id).then(function(res) {
+      if(!res.data.success) {
+        throw new Error('Network issue');
+      }
+      complaintDetailPage.$setState({
+        id: id,
+        complaint: res.data.data.complaint,
+        messages: res.data.data.messages,
+      }, () => {
+        $$(".complaint-details .preloader-inner").remove();
+      });
+    }).catch(function(error) {
+      Alerts.error(error);
+      complaintDetailPage.$setState({
+        complaint: {},
+        messages: []
+      }, () => {
+        $$(".complaint-details .preloader-inner").remove();
+      });
+    });
+  }
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        id: null,
+        complaint: null,
+        messages: [],
+        showMedia: Number(Config.version.replace(/\./g, '')) >= 106
+  		});
+  	},
+  	methods: {
+      openPhotoViewer: function(e) {
+        const img = $$(e.target).attr("data-src");
+        const title = $$(e.target).attr("data-title");
+        var photoViewer = app.photoBrowser.create({
+          photos : [{
+            url: img,
+            caption: title
+          }],
+          theme: 'dark',
+          type: 'standalone',
+          toolbar: false,
+          navbar: true
+        });
+        photoViewer.open();
+      }
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        complaintDetailPage = this;
+        var self = this;
+        loadComplaint();
+      },
+      pageReinit: function(e, page) {
+        complaintDetailPage = this;
+        loadComplaint();
+      }
+  	}
+  };
+  </script>

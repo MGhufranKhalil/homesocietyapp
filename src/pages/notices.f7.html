@@ -1,0 +1,262 @@
+<template>
+<div class="page notices" data-name="notices" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="panel-open" data-panel="left">
+          <i class="si-menu"></i>
+        </a>
+      </div>
+      <div class="title">{{_ll('Notices')}}</div>
+      {{#if editDates}}
+      <div class="right">
+        <a href="/due-dates/" class="link">
+          <i class="si-calminus"></i>
+        </a>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+  <div class="page-content ptr-content" data-ptr-distance="55" data-ptr-mousewheel="true">
+    <div class="ptr-preloader">
+      <div class="preloader"></div>
+      <div class="ptr-arrow"></div>
+    </div>
+    {{#js_if "this.dues && this.dues.length > 0"}}
+    <div class="card dates-card">
+      <div class="card-header">
+        <!--div class="card-icon">
+          <i class="si-hourglass-half"></i>
+        </div-->
+        <div class="card-title">{{ _ll('DueDates') }}</div>
+      </div>
+      <div class="card-footer">
+        {{#each dues}}
+        <div class="row">
+          <span class="label-cell due-date" style="color:{{str2color name s="60" l="30"}}">{{name}}</span>
+          <span>
+            {{dateOnly parseFormat="yyyy-MM-dd" format="d MMM yyyy" due_date}}
+            {{#js_if "this.due_time && this.due_time.length"}}
+            {{escapeHTML due_time}}
+            {{/js_if}}
+          </span>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+    {{/js_if}}
+    {{#each polls}}
+    <div class="card poll-card">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="si-user-circle vote"></i>
+        </div>
+        <div class="card-name">{{escapeHTML this.title}}</div>
+        <div class="card-date">{{timeAgo this.created_at}}</div>
+      </div>
+      <div class="card-content">
+        <p class="block block-strong">{{nl2br this.details}}</p>
+      </div>
+      <div class="card-footer row">
+        {{#js_if "this.open == '1'"}}
+          <span class="col-10"></span>
+          <span class="col-60">
+            <a href="#" class="button button-fill color-orange" data-poll-id="{{ this.id }}" @click="viewPoll">{{../../_ll('SubmitVote')}}</a>
+          </span>
+          <span class="col-10"></span>
+        {{else}}
+        <span class="col-10"></span>
+        <span class="col-60">
+          <a href="#" class="button button-fill color-green" data-poll-id="{{ this.id }}" @click="viewPoll">{{../../_ll('ViewResults')}}</a>
+        </span>
+        <span class="col-10"></span>
+        {{/js_if}}
+      </div>
+    </div>
+    {{/each}}
+    {{#each notices}}
+    <div class="card notice-card" data-id="{{ this.id }}">
+      <div class="card-header">
+        <div class="card-icon">
+          <i class="{{ this.type }} si-{{ this.type }}"></i>
+        </div>
+        <div class="card-name">{{#if ../rtl}} {{escapeHTML this.title_ar}} {{else}} {{escapeHTML this.title}} {{/if}}</div>
+        <div class="card-date">{{timeAgo this.updated_at}}</div>
+      </div>
+      <div class="card-content">
+        <p class="block block-strong">{{#if ../rtl}} {{nl2br this.details_ar}} {{else}} {{nl2br this.details}} {{/if}}</p>
+        {{#if ../showMedia}}
+        {{#js_if "../media"}}
+          <a href="#" @click="openPhotoViewer">
+            <img src="{{ ../media }}" 
+              data-title="{{#if ../rtl}} {{escapeHTML this.title_ar}} {{else}} {{escapeHTML this.title}} {{/if}}"
+              width="100%"
+              class="xlazy-lazy-fade-in"
+            />
+          </a>
+        {{/js_if}}
+        {{/if}}
+      </div>
+      <div class="card-footer">
+        <span>
+          {{#if ../newNotice}}
+            <a href="#" @click="noticeClicked" class="link">
+              <i class="si-edit"></i>
+            </a>
+          {{/if}}
+        </span>
+        <span>{{this.created_by}}</span>
+      </div>
+    </div>
+    {{/each}}
+  </div>
+  {{#if newNotice}}
+  <div class="fab fab-right-bottom">
+    <a href="/add-notice/" class="link" data-view="#view-home">
+      <i class="icon f7-icons">plus</i>
+    </a>
+  </div>
+  {{/if}}
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import Util from '../js/util.js';
+  import Config from '../js/config.js';
+  import Cache from '../js/cache.js';
+
+  let noticesPage = null;
+  let noticesPtr = null;
+  let selectedEl = null;
+
+  const filterDues = dues => {
+    const list = [];
+    for(var i in dues) {
+      const dt = new Date();
+      // to make last day also visible in dues, use midnight as reference for last day
+      dt.setHours(0);
+      dt.setMinutes(0);
+      if(new Date(dues[i].due_date) >= dt) {
+        list.push(dues[i]);
+      }
+    }
+    return list;
+  };
+
+  const editNotice = (d, e) => {
+    d.close();
+    const id = selectedEl.attr("data-id");
+    app.views.current.router.navigate(`/edit-notice/${id}`);
+  };
+  const deleteNotice = (d, e) => {
+    d.close();
+    const id = selectedEl.attr("data-id");
+    app.dialog.confirm(_ll('ArchiveNotice'), function() {
+      app.preloader.show();
+      Api.archive_notice({id: id}).then(function(res) {
+        if(!res.data.success) {
+          throw new Error('Network issue');
+        }
+        app.preloader.hide();
+        loadNotices();
+      }).catch(function(error) {
+        app.preloader.hide();
+        Alerts.error(error.message);
+      });
+    }, () => {});
+  };
+
+  const loadNotices = (event) => {
+    Api.get_notices().then(function(res) {
+      if(!res.data.success) {
+        throw new Error('Network issue');
+      }
+      if(event) app.ptr.done(noticesPtr);
+      noticesPage.$setState({
+        polls: res.data.data.polls,
+        notices: res.data.data.notices,
+        dues: filterDues(res.data.data.dues),
+        editDates: Util.can('duedates')
+      }, () => {
+        // $$('img.lazy').trigger('lazy');
+      });
+      Cache.set('notices', res.data.data.notices);
+      Cache.set('polls', res.data.data.polls);
+      Cache.set('dues', res.data.data.dues);
+    }).catch(function(error) {
+      if(event) {
+        app.ptr.done(noticesPtr);
+        Alerts.error(error);
+      }
+    });
+  }
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        polls: [],
+        notices: [],
+        dues: [],
+        newNotice: Util.can('notice'),
+        showMedia: Number(Config.version.replace(/\./g, '')) >= 105
+      });
+  	},
+  	methods: {
+      noticeClicked: function(e) {
+        selectedEl = $$(e.target).parents(".notice-card");
+
+        app.dialog.create({
+          title: _ll('SelectOption'),
+          buttons: [{
+            text: _ll('Edit'),
+            onClick: editNotice
+          },{
+            text: _ll('Archive'),
+            onClick: deleteNotice
+          }],
+          //verticalButtons: true,
+        }).open();
+      },
+      viewPoll: function(e) {
+        const id = $$(e.target).attr("data-poll-id");
+        app.views.current.router.navigate("/poll-vote/" + id);
+      },
+      openPhotoViewer: function(e) {
+        const img = $$(e.target).attr("src");
+        const title = $$(e.target).attr("data-title");
+        var photoViewer = app.photoBrowser.create({
+          photos : [{
+            url: img,
+            caption: title
+          }],
+          theme: 'dark',
+          type: 'standalone',
+          toolbar: false,
+          navbar: true
+        });
+        photoViewer.open();
+      }
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        noticesPage = this;
+        noticesPtr = $$('.notices .ptr-content');
+        noticesPtr.on('ptr:refresh', loadNotices);
+        setTimeout(function () {
+          noticesPage.$setState({
+            polls: Cache.get('polls', []),
+            notices: Cache.get('notices', []),
+            dues: filterDues(Cache.get('dues', []))
+          });
+          loadNotices();
+        }, 10);
+  		},
+      pageBeforeIn: function(e, page) {
+        $$('.toolbar').removeClass("hidden");
+      }
+  	}
+  };
+  </script>

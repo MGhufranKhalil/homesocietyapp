@@ -1,0 +1,139 @@
+<template>
+<div class="page add-collection transparent" data-name="add-collection" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('AddCollection')}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="list no-margin">
+      <ul>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Date')}}</div>
+              <div class="item-input-wrap">
+                <input type="text" name="date" placeholder="" id="collection-date" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('HouseNumber')}}</div>
+              <div class="item-input-wrap">
+                <select name="house_number">
+                  <option value="">- Select -</option>
+                  {{#each house_list}}
+									<option value="{{this}}">{{this}}</option>
+									{{/each}}
+                </select>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Category')}}</div>
+              <div class="item-input-wrap flex">
+                <select name="category">
+                  <option value="">- Select -</option>
+                  <option value="Maintenance">Maintenance</option>
+                  <option value="Donation">Donation</option>
+                  <option value="Recovery">Recovery</option>
+                  <option value="Miscellaneous">Miscellaneous</option>
+                </select>
+                <input type="number" name="amount" validate required placeholder="{{ _ll('Amount') }}" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="align-top">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Notes')}}</div>
+              <div class="item-input-wrap">
+                <textarea name="notes" placeholder="" style="height:2vh"></textarea>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+      <div class="row">
+        <div class="col-5 small-20 medium-30 large-30"></div>
+        <div class="col-90 small-60 medium-40 large-40 block margin">
+          <a href="#" class="button button-large button-fill button-raised" @click="submit">{{_ll('AddCollection')}}</a>
+  			</div>
+        <div class="col-5 small-20 medium-30 large-30"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        house_list: app.data.society.list
+      });
+  	},
+  	methods: {
+      submit: function() {
+        app.preloader.show();
+  			const data = {
+          date: $$(".page.add-collection [name=date]").val(),
+          category: $$(".page.add-collection [name=category]").val(),
+          house_number: $$(".page.add-collection [name=house_number]").val(),
+  				amount: $$(".page.add-collection [name=amount]").val(),
+  				notes: $$(".page.add-collection [name=notes]").val(),
+  			};
+  			Api.add_collection(data).then(function(res) {
+          app.preloader.hide();
+          Alerts.success(_ll('CollectionAdded'));
+          //$$(".page.add-collection [name=date]").val('');
+          $$(".page.add-collection [name=category]").val('');
+          $$(".page.add-collection [name=house_number]").val('');
+          $$(".page.add-collection [name=amount]").val('');
+  				$$(".page.add-collection [name=notes]").val('');
+  			}).catch(function(error) {
+          app.preloader.hide();
+          Alerts.error(error.message || _ll('SubmitFailed'));
+        });
+  		}
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        setTimeout(function() {
+          var collectionCal = app.calendar.create({
+            locale: DB.get('lang') == 'ur' ? 'ur' : 'en',
+            inputEl: '#collection-date',
+            openIn: 'popover',
+            dateFormat: "dd-MM-yyyy",
+            on: {
+              dayClick: function () {
+                collectionCal.close();
+              }
+            }
+            // dateFormat: { weekday: 'long', month: 'long', day: '2-digit', year: 'numeric' },
+          });
+          collectionCal.open();
+        }, 10);
+  		}
+  	}
+  };
+  </script>

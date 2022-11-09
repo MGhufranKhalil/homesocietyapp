@@ -1,0 +1,168 @@
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content: https://apps.weboxsolutions.com https://ssl.gstatic.com/ https://maps.googleapis.com/ https://maps.gstatic.com/ https://csi.gstatic.com/ https://chart.googleapis.com/ https://i.ibb.co/"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover"><meta name="theme-color" content="#369FFD"><meta name="format-detection" content="telephone=no"><meta name="msapplication-tap-highlight" content="no"><title>Home Society</title><style>/* minimal css for splash display */
+  body.splash {
+    background: #369FFD;
+    color: #ffffff;
+  }
+  .splash-logo {
+    position: fixed;
+    background-image: url("images/icon.png");
+    background-repeat: no-repeat;
+    background-position: center center;
+    width: 22vw;
+    height: 22vw;
+    max-width: 120px;
+    max-height: 120px;
+    background-size: contain;
+    top: 20vh;
+    left: 50vw;
+    transform: translate(-50%, 0);
+    /*border-radius: 10vw;
+    background-color: #369FFD;*/
+  }
+
+  .splash-dev {
+    position: fixed;
+    left: 50vw;
+    bottom: 8vw;
+    transform: translate(-50%, 0);
+    font-family: sans-serif;
+    text-align: center;
+    font-size: 2.7vw;
+  }
+
+  .splash-dev .dev-label {
+    color: #ffffff;
+    opacity: 0.7;
+    font-size: 0.8em;
+  }
+
+  .splash-dev .dev-company {
+    color: #ffffff;
+    font-size: 1em;
+    font-weight: bold;
+    margin-top: 3px;
+  }
+  @media screen and (min-width: 768px) {
+    .splash-dev {
+      font-size: 19px;
+    }
+  }</style><link href="css/app.css" rel="stylesheet"></head><body class="splash"><script id="panel-left-template" type="text/template7"><div class="view">
+		 <div class="content-block">
+			 <div class="card">
+				 <div class="card-content">
+					 <div class="card-content-padding">
+             <h1 id="panel-username">{{escapeHTML user.title}} {{escapeHTML user.name}}</h1>
+             <hr/>
+             <h2 id="panel-house-number">{{escapeHTML user.house_number}}</h2>
+             <h2 id="panel-society-name"></h2>
+					 </div>
+				 </div>
+			 </div>
+			 <div class="list-block">
+				 <ul>
+					 <li><a href="/my-complains/" class="item-link"  data-view="#view-home">
+						 <div class="item-content">
+							 <div class="item-inner">
+								 <span class="item-title"><i class="si-new"></i>{{_ll('MyComplains')}}</span>
+							 </div>
+						 </div>
+					 </a></li>
+           <li><a href="/add-complaint/" class="item-link" data-view="#view-home">
+						 <div class="item-content">
+							 <div class="item-inner">
+								 <span class="item-title"><i class="si-plus"></i>{{_ll('AddComplaint')}}</span>
+							 </div>
+						 </div>
+           </a></li>
+           {{#if votingPoll}}
+           <li><a href="/add-poll/" class="item-link" data-view="#view-home">
+            <div class="item-content">
+              <div class="item-inner">
+                <span class="item-title"><i class="si-plus"></i>{{_ll('AddVotingPoll')}}</span>
+              </div>
+            </div>
+          </a></li>
+          {{/if}}
+            <li><a href="/my-profile/" class="item-link" data-view="#view-home">
+              <div class="item-content">
+                <div class="item-inner">
+                  <span class="item-title"><i class="si-plus"></i>{{_ll('MyProfile')}}</span>
+                </div>
+              </div>
+            </a></li>
+           <li><a href="#" class="item-link logout">
+             <div class="item-content">
+             <div class="item-inner">
+               <span class="item-title"><i class="si-right"></i>{{_ll('Logout')}}</span>
+             </div>
+             </div>
+           </a></li>
+         </ul>
+         <p class="footer">
+          {{#js_if "this.lang == 'ur'"}}
+          <a href="#" class="switch-language" data-language="en">Switch To English Language</a>
+          {{else}}
+          <a href="#" class="switch-language" data-language="ur">اردو زبان میں سوئچ کریں</a>
+          {{/js_if}}
+         </p>
+			 </div>
+		 </div>
+	 </div></script><script id="toolbar-template" type="script/template7"><div class="toolbar-inner">
+      <a href="#view-home" class="tab-link tab-view-home tab-link-active">
+        <i class="icon f7-icons">exclamationmark_circle_fill</i>
+        <span class="tabbar-label">{{_ll('Notices')}}</span>
+      </a>
+      <a href="#view-complaints" class="tab-link">
+        <i class="icon f7-icons">doc_person</i>
+        <span class="tabbar-label">{{_ll('Complaints')}}</span>
+      </a>
+      <a href="#view-information" class="tab-link">
+        <i class="icon f7-icons">list_dash</i>
+        <span class="tabbar-label">{{_ll('Information')}}</span>
+      </a>
+      <a href="#view-expenses" class="tab-link">
+        <i class="icon f7-icons">square_stack_3d_up_fill</i>
+        <span class="tabbar-label">{{_ll('Expenses')}}</span>
+      </a>
+    </div></script><div class="popup translucent" id="popup-society-code"></div><script id="popup-society-code-template" type="script/template7"><div class="main blur">
+      <h2 class="title">{{_ll('SocietyCode')}}</h2>
+      <div class="block block-strong">
+        <div class="row">
+          <div class="list no-margin no-hairlines" style="width:100%">
+            <ul>
+              <li style="width:100%;text-align:center;margin-bottom:30px">
+                <div class="item-content item-input">
+                  <div class="item-inner">
+                    <div class="item-input-wrap">
+                      <input type="text" name="sid" placeholder="{{_ll('EnterSocietyCode')}}" style="text-align:center" />
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="col-100 text-align-center">
+            {{_ll('SocietyCodeMessage')}}
+          </div>
+          <div class="col-100">
+            <a href="#" class="button button-raised button-fill color-orange continue">{{_ll('Continue')}}</a>
+          </div>
+        </div>
+      </div>
+    </div></script><div id="app"><div class="splash-logo"></div><div class="splash-dev"><div class="dev-company">Webox Solutions</div></div></div><script>function checkWebViewVersion() {
+      if(window.plugins && window.plugins.webViewChecker && plugins.webViewChecker.getAndroidWebViewPackageInfo) {
+        plugins.webViewChecker.getAndroidWebViewPackageInfo()
+          .then(function(packageInfo) { 
+            console.log(packageInfo); 
+          })
+          .catch(function(error) { 
+          });
+      } else {
+        setTimeout(checkWebViewVersion, 1000);
+      }
+    }
+    window.onerror = function(e) {
+      console.log(e);
+      // setTimeout(checkWebViewVersion, 1000);
+      alert("We are sorry but your system is using an old version of android which is not supported.\n\nPlease contact support for more information.");
+    };</script><script src="js/app.js" async></script></body></html>

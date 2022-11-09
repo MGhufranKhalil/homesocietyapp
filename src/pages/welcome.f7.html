@@ -1,0 +1,138 @@
+<template>
+  <div class="page welcome" data-name="welcome" {{#if rtl}} dir="rtl" {{/if}}>
+    <div class="page-content justify-content-center align-content-center">
+      <h2 dir="ltr"><span class="logo"></span>{{title}}</h2>
+      <div class="block-title">{{_ll('LoginOrRegister')}}</div>
+      <div class="block block-strong main blur">
+        <div class="row">
+					<div class="col-5 small-20 medium-30 large-30"></div>
+          <div class="col-90 small-60 medium-40 large-40">
+            <a href="#" @click="login" class="button button-large button-raised button-fill color-blue">{{_ll('Login')}}</a>
+					</div>
+					<div class="col-5 small-20 medium-30 large-30"></div>
+				</div>
+				<div class="row">
+					<div class="col-5 small-20 medium-30 large-30"></div>
+          <div class="col-90 small-60 medium-40 large-40">
+            <a href="#" @click="register" class="button button-large button-raised button-fill color-orange">{{_ll('CreateAccount')}}</a>
+					</div>
+					<div class="col-5 small-20 medium-30 large-30"></div>
+				</div>
+				{{#if contact}}
+				<div class="row">
+					<div class="block text-align-center col-100">
+						<p>{{contact}}</p>
+					</div>
+				</div>
+				{{/if}}
+			</div>
+			<div class="block block-strong text-align-center blur footer">
+				{{#js_if "../lang == 'ur'"}}
+				<a href="#" @click="switchEn">Switch To English Language</a>
+				{{else}}
+				<a href="#" @click="switchUr">اردو زبان میں سوئچ کریں</a>
+				{{/js_if}}
+			</div>
+    </div>
+  </div>
+</template>
+<script>
+	import $$ from 'dom7';
+	import Api from '../js/api.js';
+	import DB from '../js/db.js';
+	import Cache from '../js/cache.js';
+	import Alerts from '../js/alerts.js';
+	let welcomePage = null;
+	// page where app will navigate after getting a society code successfully
+	let nextPage = null;
+	
+	const getSocietyCode = () => {
+		app.popup.open("#popup-society-code");
+		setTimeout(function() { $$("#popup-society-code input").focus(); }, 500);
+	}
+
+	const load_society_info = (sid) => {
+		app.preloader.show();
+		Api.set_society(sid).then(function(res) {
+			const data = JSON.parse(res.data);
+			if(!data || !data.success) {
+				throw Error(res.message);
+			}
+			DB.set('sid', sid);
+			Cache.set('society', data.data);
+
+			app.data.society = data.data;
+			app.preloader.hide();
+			app.popup.close();
+			welcomePage.$setState({
+				title: app.data.society.name,
+				contact: app.data.society.contact ? _ll('WelcomeMsg2').replace('{{CONTACT}}', '<br>' + app.data.society.contact) : false
+			});
+			if(nextPage) {
+				app.methods.go(nextPage);
+			}
+		}).catch(function(error) {
+			app.preloader.hide();
+			Alerts.error('Society record not found');
+		});
+	};
+
+	export default {
+		data: function () {
+			const society_id = DB.get('sid');
+			return this.$app.methods.pageData({
+				title: _ll('AppTitle'),
+				sid: society_id,
+				contact: false
+			});
+		},
+		methods: {
+			switchEn: function() {
+				this.$app.methods.switchLanguage('en');
+			},
+			switchUr: function() {
+				this.$app.methods.switchLanguage('ur');
+			},
+			login: function() {
+				nextPage = "/login/";
+				const sid = DB.get('sid');
+				if(!sid) {
+					getSocietyCode();
+				} else {
+					app.methods.go(nextPage);
+				}
+			},
+			register: function() {
+				nextPage = "/register/";
+				const sid = DB.get('sid');
+				if(!sid) {
+					getSocietyCode();
+				} else {
+					app.methods.go(nextPage);
+				}
+			}
+		},
+		on: {
+			pageInit: function() {
+				welcomePage = this;
+				if(DB.get('intro') != '1') {
+					// app.welcomescreen.open();
+					// DB.set('intro', 1);
+				}
+				const society_id = DB.get('sid');
+				if(society_id) {
+					load_society_info(society_id);
+				} else {
+					const popupTemplate = Template7.compile($$('script#popup-society-code-template').html());
+					$$("#popup-society-code").html(popupTemplate(app.methods.pageData({})));
+					$$("#popup-society-code .continue").on('click', function(e) {
+						e.preventDefault();
+						app.preloader.show();
+						const sid = $$("#popup-society-code [name=sid]").val();
+						load_society_info(sid);
+					});
+				}
+			}
+		}
+	}
+</script>

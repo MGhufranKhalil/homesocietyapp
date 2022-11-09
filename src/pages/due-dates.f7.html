@@ -1,0 +1,154 @@
+<template>
+<div class="page due-dates transparent" data-name="due-dates" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('DueDates')}}</div>
+      <div class="right">
+        <a href="#" class="link" @click="addDate">
+          <i class="si-plus"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="cards">
+      {{#each dates}}
+      <div class="card" style="background-color:{{str2color this.name s="50" l="90"}}">
+        <div class="card-content">
+          <ul class="list duedate">
+            <li>
+              <div class="item-content item-input">
+                <div class="item-inner">
+                  <div class="item-title item-label">{{../_ll('Title')}}</div>
+                  <div class="item-input-wrap">
+                    <input type="text" name="name" placeholder="" value="{{ name }}" />
+                    <!--span class="input-clear-button"></span-->
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content item-input">
+                <div class="item-inner">
+                  <div class="item-title item-label">{{../_ll('Date')}}</div>
+                  <div class="item-input-wrap">
+                    <input type="text" name="due_date" placeholder="" class="due-date" value="{{dateOnly parseFormat="yyyy-MM-dd" format="d MMM yyyy" due_date}}" />
+                    <span class="input-clear-button"></span>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    <div class="row">
+      <div class="col-5 small-20 medium-30 large-30"></div>
+      <div class="col-90 small-60 medium-40 large-40 block margin">
+        <a href="#" class="button button-large button-fill button-raised" @click="submit">{{_ll('Submit')}}</a>
+      </div>
+      <div class="col-5 small-20 medium-30 large-30"></div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+
+  let thisPage = null;
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        dates: []
+      });
+  	},
+  	methods: {
+      addDate: function() {
+        const card = $$('<div class="card">' + $$(".page.due-dates .page-content .card:first-child").html() + '</div>');
+        $$(".page.due-dates .page-content .cards").append(card);
+        var cal = app.calendar.create({
+          locale: DB.get('lang') == 'ur' ? 'ur' : 'en',
+          inputEl: card.find(".due-date"),
+          openIn: 'popover',
+          dateFormat: "dd-MM-yyyy",
+          on: {
+            dayClick: function () {
+              cal.close();
+            }
+          }
+        });
+      },
+      submit: function() {
+        app.preloader.show();
+        const cards = $$(".page.due-dates .card");
+        const dates = [];
+        cards.each(function() {
+          const name = $$(this).find("[name=name]").val();
+          const due_date = $$(this).find("[name=due_date]").val();
+          if(name && due_date) {
+            dates.push({name, due_date});
+          }
+        });
+  			const data = {
+  				dates: dates
+        };
+  			Api.update_duedates(data).then(function(res) {
+          app.preloader.hide();
+          thisPage.$setState({ datesUpdated: true });
+          app.methods.goBack();
+  			}).catch(function(error) {
+          app.preloader.hide();
+          Alerts.error(error.message || _ll('SubmitFailed'));
+        });
+  		}
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        thisPage = this;
+        app.preloader.show();
+        Api.get_duedates().then(function(res) {
+          app.preloader.hide();
+          self.$setState({
+            dates: res.data.data
+          }, () => {
+            $$(".page.due-dates .due-date").each(function() {
+              var cal = app.calendar.create({
+                locale: DB.get('lang') == 'ur' ? 'ur' : 'en',
+                inputEl: this,
+                openIn: 'popover',
+                dateFormat: "dd-MM-yyyy",
+                on: {
+                  dayClick: function () {
+                    cal.close();
+                  }
+                }
+              });
+            });
+            // $$(".page.due-dates .due-date").on("input:clear", function(e) {});
+          });
+  			}).catch(function(error) {
+          app.preloader.hide();
+          Alerts.error(error);
+        });
+      },
+      pageAfterOut: function() {
+        if(this.datesUpdated) {
+          setTimeout(function() { app.views[0].router.refreshPage(); }, 50);
+        }
+      }
+  	}
+  };
+  </script>

@@ -1,0 +1,139 @@
+<template>
+<div class="page my-profile transparent" data-name="my-profile" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('MyProfile')}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="list no-margin">
+      <ul>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('NameTitle')}}</div>
+              <div class="item-input-wrap flex">
+                <select name="title">
+                  <option value="Mr." {{#js_if "../contact.title == 'Mr.'"}} selected {{/js_if}}>Mr.</option>
+									<option value="Mrs." {{#js_if "../contact.title == 'Mrs.'"}} selected {{/js_if}}>Mrs.</option>
+									<option value="Miss" {{#js_if "../contact.title == 'Miss'"}} selected {{/js_if}}>Miss</option>
+									<option value="Dr." {{#js_if "../contact.title == 'Dr.'"}} selected {{/js_if}}>Dr.</option>
+                </select>
+								<input type="text" name="name" placeholder="" required value="{{ contact.name }}" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('PhoneNumber')}}</div>
+              <div class="item-input-wrap">
+                <input type="tel" name="phone_number" value="{{ contact.phone_number }}" required placeholder="e.g. 03331234567"/>
+              </div>
+							<!--div class="item-subtitle item-label">{{_ll('PhoneMessage')}}</div-->
+            </div>
+          </div>
+          <div class="item-content">
+            <div class="item-inner">
+              <div class="item-title">
+                <span class="item-label">{{_ll('ShowPhoneNumber')}}</span>
+              </div>
+              <div class="item-after">
+                <label class="toggle toggle-init">
+                  <input type="checkbox" name="phone_visible" {{#js_if "this.contact.phone_visible == '1'"}} checked {{/js_if}}>
+                  <span class="toggle-icon"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('WhatsAppNumber')}}</div>
+              <div class="item-input-wrap">
+                <input type="tel" name="whatsapp" value="{{ contact.whatsapp }}"  placeholder="e.g. 03332345678"/>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Password')}}</div>
+              <div class="item-input-wrap">
+                <input type="password" name="password" placeholder="Leave empty if unchanged"/>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+      <div class="block margin row">
+  			<div class="col-10"></div>
+        <div class="col-80">
+  			     <a href="#" class="button button-large button-fill button-raised" @click="submit">{{_ll('UpdateProfile')}}</a>
+  			</div>
+        <div class="col-10"></div>
+  		</div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+
+  let myProfilePage = null;
+
+  export default {
+  	data: function () {
+      const userData = DB.get("user");
+      const contact = JSON.parse(userData);
+  		return this.$app.methods.pageData({
+        contact: contact
+      });
+  	},
+  	methods: {
+      submit: function() {
+        app.preloader.show();
+  			const data = {
+          title: $$(".page.my-profile [name=title]").val(),
+          name: $$(".page.my-profile [name=name]").val(),
+          phone_number: $$(".page.my-profile [name=phone_number]").val(),
+          whatsapp: $$(".page.my-profile [name=whatsapp]").val(),
+          password: $$(".page.my-profile [name=password]").val()
+        };
+        const phone_visible = $$(".page.my-profile [name=phone_visible]:checked").length;
+        data.phone_visible = phone_visible;
+
+  			Api.update_profile(data).then(function(res) {
+          if(res.data.success) {
+            DB.set("user", JSON.stringify(res.data.data.user));
+          }
+          app.preloader.hide();
+          Alerts.success(_ll('ProfileUpdated'));
+          app.views[0].router.back();
+  			}).catch(function(error) {
+          app.preloader.hide();
+          Alerts.error(error.message || _ll('SubmitFailed'));
+        });
+  		}
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        myProfilePage = this;
+      }
+  	}
+  };
+  </script>

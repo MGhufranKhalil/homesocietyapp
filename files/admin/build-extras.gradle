@@ -1,0 +1,17 @@
+// This file is included at the beginning of `build.gradle`
+ext.cdvReleaseSigningPropertiesFile = '../../../../files/admin/release-keys.properties'
+
+def applicationName = "home-society-admin";
+
+def target = System.getenv('NODE_ENV')
+def build_code = System.getenv('APP_BUILD_CODE')
+
+android.applicationVariants.all { variant ->
+  variant.outputs.all {
+    def newApkName
+    if (target == 'production') {
+      newApkName = "${applicationName}-${variant.versionName}-${build_code}.apk"
+      outputFileName = new File(newApkName)
+    }
+  }
+}

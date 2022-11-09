@@ -1,0 +1,191 @@
+body.ltr {
+  [class^="si-"]:before, [class*=" si-"]:before {
+    margin-left: .2em;
+    margin-right: .4em;
+  }
+  .navbar {
+    [class^="si-"]:before, [class*=" si-"]:before {
+      margin-left: 0.5em;
+    }
+  }
+  .card {
+    .card-header {
+      .card-name {
+        margin-left: 44px;
+      }
+      .card-date {
+        margin-left: 44px;
+      }
+    }
+    .card-icon {
+      float: left;
+    }
+  }
+  .page.directory {
+    .card {
+      &:after {
+        right: 0;
+      }
+      &.admin {
+        &:after {
+          content: 'Admin';
+        }
+      }
+      &.president {
+        &:after {
+          content: 'President';
+        }
+      }
+      &.vicepresident {
+        &:after {
+          content: 'Vice President';
+        }
+      }
+      &.secretary {
+        &:after {
+          content: 'Secretary';
+        }
+      }
+      &.generalsecretary {
+        &:after {
+          content: 'General Secretary';
+        }
+      }
+      &.jointsecretary {
+        &:after {
+          content: 'Joint Secretary';
+        }
+      }
+      &.finance {
+        &:after {
+          content: 'Finance';
+        }
+      }
+      &.facilitator {
+        &:after {
+          content: 'Facilitator'
+        }
+      }
+    }
+    .card-name {
+      margin-right: 0;
+    }
+  }
+
+  .page.complaints,
+  .page.complaint-details {
+    .private {
+      right: 10px;
+    }
+  }
+
+  .page.poll-vote {
+    .result-card p {
+      span {
+        text-align: right;
+      }
+    }
+  }
+
+  .page.workers {
+    .card .card-image {
+      right: 22px;
+    }
+  }
+}
+
+body.rtl {
+  [class^="si-"]:before, [class*=" si-"]:before {
+    margin-right: .2em;
+    margin-left: .4em;
+  }
+  .navbar {
+    [class^="si-"]:before, [class*=" si-"]:before {
+      margin-right: 0.5em;
+    }
+    .icon-back:after {
+      content: 'arrow_right_md' !important;
+    }
+  }
+  /* works to fix add complaint page toggle appearance */
+  .list .item-after {
+    margin-left: unset;
+    margin-right: auto;
+  }
+
+  .card {
+    .card-header {
+      .card-name {
+        margin-right: 44px;
+      }
+      .card-date {
+        margin-right: 44px;
+      }
+    }
+    .card-icon {
+      float: right;
+    }
+  }
+  .page.directory {
+    .card {
+      &:after {
+        right: 0;
+      }
+      &.admin {
+        &:after {
+          content: 'ایڈمن';
+        }
+      }
+      &.president {
+        &:after {
+          content: 'صدر';
+        }
+      }
+      &.vicepresident {
+        &:after {
+          content: 'نائب صدر';
+        }
+      }
+      &.secretary {
+        &:after {
+          content: 'جنرل سیکرٹری';
+        }
+      }
+      &.finance {
+        &:after {
+          content: 'سیکرٹری خزانہ';
+        }
+      }
+      &.facilitator {
+        &:after {
+          content: 'سہولت کار'
+        }
+      }
+    }
+    .card-name {
+      margin-left: 0;
+    }
+  }
+
+  .page.complaints {
+    .private {
+      left: 10px;
+    }
+  }
+
+  .page.poll-vote {
+    .result-card p {
+      span {
+        text-align: left;
+      }
+    }
+  }
+
+  .page.workers {
+    .card .card-image {
+      left: 22px;
+    }
+  }
+}
+
+

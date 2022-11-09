@@ -1,0 +1,156 @@
+<template>
+<div class="page edit-expense transparent" data-name="edit-expense" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{title}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="list no-margin">
+      <ul>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Date')}}</div>
+              <div class="item-input-wrap">
+                <input type="text" name="date" placeholder="" id="expense-date" value="{{date}}" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Category')}}</div>
+              <div class="item-input-wrap flex">
+                <select name="category">
+                  <option value="">- Select -</option>
+                  <option value="Bills" {{#js_if "this.category=='Bills'"}} selected {{/js_if}}>Bills</option>
+                  <option value="Salary" {{#js_if "this.category=='Salary'"}} selected {{/js_if}}>Salary</option>
+                  <option value="Development" {{#js_if "this.category=='Development'"}} selected {{/js_if}}>Development</option>
+                  <option value="Construction" {{#js_if "this.category=='Construction'"}} selected {{/js_if}}>Construction</option>
+                  <option value="Maintenance" {{#js_if "this.category=='Maintenance'"}} selected {{/js_if}}>Maintenance</option>
+                  <option value="Water Supply" {{#js_if "this.category=='Water Supply'"}} selected {{/js_if}}>Water Supply</option>
+                  <option value="Electricity" {{#js_if "this.category=='Electricity'"}} selected {{/js_if}}>Electricity</option>
+                  <option value="Gas Supply" {{#js_if "this.category=='Gas Supply'"}} selected {{/js_if}}>Gas Supply</option>
+                  <option value="Conservancy" {{#js_if "this.category=='Conservancy'"}} selected {{/js_if}}>Conservancy</option>
+                  <option value="Miscellaneous" {{#js_if "this.category=='Miscellaneous'"}} selected {{/js_if}}>Miscellaneous</option>
+                </select>
+                <input type="number" name="amount" validate required placeholder="{{ _ll('Amount') }}" value="{{amount}}" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="align-top">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Notes')}}</div>
+              <div class="item-input-wrap">
+                <textarea name="notes" placeholder="" style="height:24vh">{{notes}}</textarea>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+      <div class="row">
+        <div class="col-5 small-20 medium-30 large-30"></div>
+        <div class="col-90 small-60 medium-40 large-40 block margin">
+          <a href="#" class="button button-large button-fill button-raised" @click="submit">{{title}}</a>
+  			</div>
+        <div class="col-5 small-20 medium-30 large-30"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+  import {parse, format} from 'date-fns';
+
+  export default {
+  	data: function () {
+      const param = this.$route.context;
+      if(param && param.id) {
+        param.title = _ll('EditExpense');
+        /* creepy way to convert date back to input value, but works */
+        const date = parse(`${param.day} ${param.month}`, "do MMMM yyyy", new Date());
+        param.date = format(date, "dd-MMMM-yyyy");
+  		  return this.$app.methods.pageData(param);
+      }
+      return this.$app.methods.pageData({
+        title: _ll('AddExpense'),
+        date: '',
+        category: '',
+        amount: '',
+        notes: ''
+      });
+  	},
+  	methods: {
+      submit: function() {
+        const param = this.$route.context;
+        const isEditing = param && param.id;
+        app.preloader.show();
+  			const data = {
+          date: $$(".page.edit-expense [name=date]").val(),
+          category: $$(".page.edit-expense [name=category]").val(),
+  				amount: $$(".page.edit-expense [name=amount]").val(),
+  				notes: $$(".page.edit-expense [name=notes]").val(),
+  			};
+        if(isEditing) {
+          data.id = param.id;
+        }
+        const fn = isEditing ? Api.edit_expense : Api.add_expense;
+  			fn(data).then(function(res) {
+          app.preloader.hide();
+          Alerts.success(isEditing ? _ll('ExpenseUpdated') : _ll('ExpenseAdded'));
+          if(isEditing) {
+            app.methods.goBack();
+          } else {
+            //$$(".page.edit-expense [name=date]").val('');
+            $$(".page.edit-expense [name=category]").val('');
+            $$(".page.edit-expense [name=amount]").val('');
+            $$(".page.edit-expense [name=notes]").val('');
+          }
+  			}).catch(function(error) {
+          app.preloader.hide();
+          Alerts.error(error.message || _ll('SubmitFailed'));
+        });
+  		}
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        const param = this.$route.context;
+        const isEditing = param && param.id;
+        setTimeout(function() {
+          var expenseCal = app.calendar.create({
+            locale: DB.get('lang') == 'ur' ? 'ur' : 'en',
+            inputEl: '#expense-date',
+            openIn: 'popover',
+            dateFormat: "dd-MM-yyyy",
+            on: {
+              dayClick: function () {
+                expenseCal.close();
+              }
+            }
+            // dateFormat: { weekday: 'long', month: 'long', day: '2-digit', year: 'numeric' },
+          });
+          if(isEditing) {
+          } else {
+            expenseCal.open();
+          }
+        }, 10);
+  		}
+  	}
+  };
+  </script>

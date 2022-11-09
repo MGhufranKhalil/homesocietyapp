@@ -1,0 +1,45 @@
+<template>
+  <div id="app">
+
+    <!-- Left panel with cover effect-->
+    <div class="panel panel-left panel-cover panel-init">
+    </div>
+
+    <!-- Views/Tabs container -->
+    <div class="views tabs safe-areas">
+      <!-- Tabbar for switching views-tabs -->
+      <div class="toolbar toolbar-bottom tabbar-labels hidden">
+
+      </div>
+
+      <div id="view-home" class="view view-main view-init tab tab-active" data-url="/blank/">
+      </div>
+
+      <div id="view-complaints" class="view view-init tab" data-view="complaints" data-url="/blank/">
+      </div>
+
+      <div id="view-information" class="view view-init tab" data-view="information" data-url="/blank/">
+      </div>
+
+      <div id="view-expenses" class="view view-init tab" data-view="expenses" data-url="/blank/">
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from './js/api.js';
+  import Alerts from './js/alerts.js';
+  export default {
+    data: function () {
+      return this.$app.methods.pageData({
+      });
+    },
+    methods: {
+    },
+    on: {
+      pageInit: function (e, page) {
+      }
+    }
+  };
+</script>

@@ -1,0 +1,76 @@
+<template>
+<div class="page information" data-name="information" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="panel-open" data-panel="left">
+          <i class="si-menu"></i>
+        </a>
+      </div>
+      <div class="title">{{_ll('Information')}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="block-title"></div>
+    <div class="list media-list">
+      <ul>
+        <li>
+          <a class="item-link item-content" href="/directory/" data-view="#view-information">
+            <div class="item-media"><div class="directory"></div></div>
+            <div class="item-inner">
+              <div class="item-title-row">
+                <div class="item-title">{{_ll('ContactDirectory')}}</div>
+              </div>
+              <!--div class="item-subtitle">Beatles</div-->
+              <div class="item-text">{{_ll('ContactDirectoryMsg')}}</div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="item-link item-content" href="/workers/" data-view="#view-information">
+            <div class="item-media"><div class="workers"></div></div>
+            <div class="item-inner">
+              <div class="item-title-row">
+                <div class="item-title">{{_ll('SocietyWorkers')}}</div>
+              </div>
+              <div class="item-text">{{_ll('SocietyWorkersMsg')}}</div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="item-link item-content" href="/guidelines/" data-view="#view-information">
+            <div class="item-media"><div class="guidelines"></div></div>
+            <div class="item-inner">
+              <div class="item-title-row">
+                <div class="item-title">{{_ll('Guidelines')}}</div>
+              </div>
+              <div class="item-text">{{_ll('GuidelinesMsg')}}</div>
+            </div>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({});
+  	},
+  	methods: {
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        setTimeout(function() {
+          page.router.clearPreviousHistory();
+        }, 100);
+      },
+      pageBeforeIn: function(e, page) {
+        $$('.toolbar').removeClass("hidden");
+      }
+  	}
+  };
+  </script>

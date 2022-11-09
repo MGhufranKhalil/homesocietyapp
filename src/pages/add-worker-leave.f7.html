@@ -1,0 +1,145 @@
+<template>
+<div class="page add-worker-leave transparent" data-name="add-worker-leave" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{_ll('AddLeaveRecord')}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="list no-margin">
+      <ul>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Date')}}</div>
+              <div class="item-input-wrap">
+                <input type="text" name="date" placeholder="" id="leave-date" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Worker')}}</div>
+              <div class="item-input-wrap">
+                <select name="worker">
+                  <option value="">- Select -</option>
+                  {{#each workers}}
+                  <option value="{{ this.id }}">{{ this.name }}</option>
+                  {{/each}}
+                </select>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="align-top">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Notes')}}</div>
+              <div class="item-input-wrap">
+                <textarea name="notes" placeholder="{{ ../_ll('Optional') }}" style="height:24vh"></textarea>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+      <div class="row">
+        <div class="col-5 small-20 medium-30 large-30"></div>
+        <div class="col-90 small-60 medium-40 large-40 block margin">
+          <a href="#" class="button button-large button-fill button-raised" @click="submit">{{_ll('Submit')}}</a>
+  			</div>
+        <div class="col-5 small-20 medium-30 large-30"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+  import Cache from '../js/cache.js';
+
+  function filterWorkers(arr) {
+    var out = [];
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i].enlisted == 1) {
+          out.push(arr[i]);
+        }
+    }
+    return out;
+  }
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({});
+  	},
+  	methods: {
+      submit: function() {
+        app.preloader.show();
+  			const data = {
+          date: $$(".page.add-worker-leave [name=date]").val(),
+          worker: $$(".page.add-worker-leave [name=worker]").val(),
+  				notes: $$(".page.add-worker-leave [name=notes]").val(),
+  			};
+  			Api.add_worker_leave(data).then(function(res) {
+          app.preloader.hide();
+          Alerts.success(_ll('OperationSuccess'));
+          $$(".page.add-worker-leave [name=worker]").val('');
+  				$$(".page.add-worker-leave [name=notes]").val('');
+  			}).catch(function(error) {
+          app.preloader.hide();
+          Alerts.error(error.message || _ll('SubmitFailed'));
+        });
+  		}
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        // check workers list from cache first
+        const workers = Cache.get('workers', []);
+        if(workers.length > 0) {
+          self.$setState({
+            workers: filterWorkers(workers)
+          });
+        } else {
+          Api.get_workers().then(function(res) {
+            if(!res.data.success) {
+              throw new Error('Network issue');
+            }
+            self.$setState({
+              workers: filterWorkers(res.data.data)
+            });
+            Cache.set('workers', res.data.data);
+          }).catch(function(error) {
+          });
+        }
+
+        setTimeout(function() {
+          var calendar = app.calendar.create({
+            locale: DB.get('lang') == 'ur' ? 'ur' : 'en',
+            inputEl: '#leave-date',
+            openIn: 'popover',
+            dateFormat: "dd-MM-yyyy",
+            on: {
+              dayClick: function () {
+                calendar.close();
+              }
+            }
+            // dateFormat: { weekday: 'long', month: 'long', day: '2-digit', year: 'numeric' },
+          });
+          calendar.open();
+        }, 10);
+  		}
+  	}
+  };
+  </script>

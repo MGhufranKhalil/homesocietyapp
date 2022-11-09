@@ -1,0 +1,270 @@
+<template>
+<div class="page edit-worker transparent" data-name="edit-worker" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">Back</span>
+        </a>
+      </div>
+      <div class="title">{{title}}</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="list no-margin">
+      <ul>
+        {{#if isEdit}}
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Status')}}</div>
+              <div class="item-input-wrap">
+                <select name="active" required>
+                  <option value="1" selected>Active</option>
+                  <option value="0">Inactive</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </li>
+        {{/if}}
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('WorkerType')}}</div>
+              <div class="item-input-wrap">
+                <input type="text" name="type" placeholder="{{ _ll('WorkerTypePlaceHolder') }}" required value="{{ worker.type }}" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Name')}}</div>
+              <div class="item-input-wrap">
+								<input type="text" name="name" placeholder="" required value="{{ worker.name }}" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('PhoneNumber')}}</div>
+              <div class="item-input-wrap">
+                <input type="tel" name="phone_number" value="{{ worker.phone_number }}"  placeholder="e.g. 03332345678"/>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('WhatsAppNumber')}}</div>
+              <div class="item-input-wrap">
+                <input type="tel" name="whatsapp" value="{{ worker.whatsapp }}"  placeholder="e.g. 03332345678"/>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('PhoneNumber')}} #2</div>
+              <div class="item-input-wrap">
+                <input type="tel" name="phone_number2" value="{{ worker.phone_number2 }}"  placeholder="{{ _ll('Optional') }}" />
+              </div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('PhoneNumber')}} #3</div>
+              <div class="item-input-wrap">
+                <input type="tel" name="phone_number3" value="{{ worker.phone_number3 }}"  placeholder="{{ _ll('Optional') }}"/>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="align-top">
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label">{{_ll('Notes')}}</div>
+              <div class="item-input-wrap">
+                <textarea name="notes" placeholder="" style="height:14vh">{{ worker.notes }}</textarea>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="item-content item-input">
+		      <div class="item-inner">
+		        <div class="item-title item-label">{{_ll('Image')}}</div>
+						<div class="item-input-wrap no-hairline attachment">
+              {{#js_if "this.selectedFilename.length"}}
+							<span class="upload-filename">{{selectedFilename}}</span>
+							{{else}}
+                {{#js_if "this.worker.image"}}
+                  <img src="{{ worker.image }}" width="100%" />
+                {{else}}
+							  <!--span class="upload-filename placeholder">{{../_ll('NoFileChoosen')}}</span-->
+                {{/if}}
+							{{/js_if}}
+		          <div class="row">
+                <div class="col-50"><a class="button button-fill btn-upload color-purple" href="#" @click="selectFile" accept="image/*;capture=camera">
+                  {{_ll('ChooseFile')}}
+                </a></div>
+                <div class="col-50"><a class="button button-fill btn-camera color-orange" href="#" @click="captureCameraImage" accept="*">
+                  {{_ll('TakePicture')}}
+                </a></div>
+              </div>
+		        </div>
+		      </div>
+		    </li>
+      </ul>
+      <div class="block margin row">
+  			<div class="col-10"></div>
+        <div class="col-80">
+          <a href="#" class="button button-large button-fill button-raised" @click="submit">
+            {{#if isEdit}} {{_ll('UpdateWorker')}} {{else}} {{_ll('Submit')}} {{/if}}
+          </a>
+  			</div>
+        <div class="col-10"></div>
+  		</div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import DB from '../js/db.js';
+  import Util from '../js/util.js';
+  import Config from '../js/config.js';
+  import Cache from '../js/cache.js';
+
+  let editWorkerPage = null;
+  let selectedFile = null;
+
+  const successCallback = (res) => {
+    app.preloader.hide();
+    Alerts.success(_ll('WorkerInfoUpdated'));
+    app.methods.goBack();
+  };
+
+  const errorCallback = (error) => {
+    app.preloader.hide();
+    Alerts.error(error.message || _ll('SubmitFailed'));
+  };
+
+  const loadWorker = () => {
+    const id = editWorkerPage.$route.params.id;
+    Api.get_worker({id: id}).then(function(res) {
+      if(!res.data.success) {
+        throw new Error('Network issue');
+      }
+      editWorkerPage.$setState({
+        worker: res.data.data
+      });
+    }).catch(function(error) {
+      Alerts.error(error.message);
+    });
+  };
+
+  export default {
+  	data: function () {
+      const id = this.$route.params.id;
+  		return this.$app.methods.pageData({
+        title: id ? _ll('EditWorker') : _ll('AddWorker'),
+        worker: {},
+        isEdit: id
+      });
+  	},
+  	methods: {
+      submit: function() {
+        const isEdit = this.$route.params.id;
+        app.preloader.show();
+  			const data = {
+          type: $$(".page.edit-worker [name=type]").val(),
+          name: $$(".page.edit-worker [name=name]").val(),
+          phone_number: $$(".page.edit-worker [name=phone_number]").val(),
+          phone_number2: $$(".page.edit-worker [name=phone_number2]").val(),
+          phone_number3: $$(".page.edit-worker [name=phone_number3]").val(),
+          whatsapp: $$(".page.edit-worker [name=whatsapp]").val(),
+          notes: $$(".page.edit-worker [name=notes]").val()
+        };
+        if(isEdit) {
+          data.id = this.$route.params.id;
+          data.active = $$(".page.edit-worker [name=active]").val();
+        }
+        if (selectedFile && selectedFile.uri) {
+          selectedFile.key = 'image';
+					var url = Config.api + (isEdit ? "workers/update" : "workers/add");
+					app.methods.multipartRequest(url, selectedFile, data, successCallback, errorCallback);
+				} else {
+          const method = isEdit ? 'update_worker' : 'add_worker';
+          (Api[method])(data).then(successCallback).catch(errorCallback);
+        }
+  		},
+      selectFile: function() {
+        chooser.getFile().then(function(file) {
+					if (file && file.uri) {
+						var mime = Util.getMimeType(file.name);
+						if (['image/gif', 'image/jpg', 'image/jpeg', 'image/png'].indexOf(mime) == -1) {
+							selectedFile = null;
+							editWorkerPage.$setState({
+								selectedFilename: ''
+							});
+							app.methods.notify(_ll('InvalidFileType'));
+						} else {
+              selectedFile = file;
+							editWorkerPage.$setState({
+								selectedFilename: file.name
+							});
+						}
+					} else {
+						selectedFile = null;
+						editWorkerPage.$setState({
+							selectedFilename: ''
+						});
+					}
+				});
+      },
+      captureCameraImage: function() {
+        navigator.camera.getPicture(function(file) {
+					selectedFile = {
+						uri: file,
+						name: Util.fileNameFromPath(file),
+						mimeType: Util.getMimeType(file)
+          };
+					editWorkerPage.$setState({
+						selectedFilename: selectedFile.name
+					});
+				}, function(error) {
+          Alerts.error(error);
+					selectedFile = null;
+					editWorkerPage.$setState({
+						selectedFilename: ''
+					});
+				}, {
+					quality: 50,
+					destinationType: Camera.DestinationType.FILE_URI
+				});
+      }
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        var self = this;
+        editWorkerPage = this;
+        const id = this.$route.params.id;
+        if(id) {
+          loadWorker();
+        }
+      }
+  	}
+  };
+  </script>

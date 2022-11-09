@@ -1,0 +1,217 @@
+.splash-logo {
+  /*border-radius: 10vw;
+  background-color: #369FFD;*/
+}
+
+.welcomescreen-picture {
+  i:before {
+    font-size: 40vw;
+    margin: 0 !important;
+    color: white;
+  }
+}
+
+.notification-icon {
+  background: url("../assets/icon.png") no-repeat center center;
+  width: var(--f7-notification-icon-size);
+  height: var(--f7-notification-icon-size);
+  background-size: var(--f7-notification-icon-size);
+}
+
+/* hidden toolbar */
+.toolbar {
+  direction: ltr;
+  &.hidden {
+    display: none;
+  }
+}
+
+/* navbar custom icons */
+.navbar {
+  [class^="si-"]:before, [class*=" si-"]:before {
+    font-size: 1.2em;
+  }
+}
+
+.chip {
+  padding-top: 2px;
+}
+
+/* space between two cols of full width */
+.col-100 + .col-100 {
+	margin-top: 16px;
+}
+
+/* pace between two rows within a block */
+.block .row + .row {
+  margin-top: 24px;
+}
+
+.item-input-wrap.flex {
+	display: flex;
+	select {
+		min-width: 80px;
+	}
+}
+
+.item-input-wrap, select, input {
+  direction: ltr;
+}
+
+.page {
+	background: url("../assets/canvas.jpg") no-repeat center center;
+  background-size: cover;
+}
+
+.page-content {
+  background-color: rgba(255,255,255,0.4);
+}
+
+.card {
+  opacity: 0.9;
+  .card-content {
+    overflow: hidden;
+  }
+}
+
+/* default is too much empty space below table heading */
+.data-table.card .card-header,
+.card .data-table .card-header {
+  min-height: 30px;
+}
+
+/* left panel */
+.panel.panel-left {
+  background: #297CC6;
+  .card {
+    background: white; /*#5DAB47;#009d0d;*/
+    color: rgb(4, 131, 201);
+    margin-top: calc(var(--f7-safe-area-top) + var(--f7-card-margin-vertical));
+    h1 {
+      margin: 0 0 10px 0;
+      line-height: 1.2;
+      font-size: 1.6em;
+    }
+    h2 {
+      line-height: 1;
+      margin: 0 0 6px 0;
+      font-size: 1.2em;
+    }
+    hr {
+      margin-bottom: 8px;
+      background: #297CC6;
+    }
+  }
+  ul {
+    padding-left: 10px;
+  }
+  li {
+    list-style: none;
+    margin-bottom: 4vh;
+    .item-link {
+      color: white;
+    }
+  }
+  .footer {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    text-align: center;
+    a, a:visited {
+      color: white;
+    }
+  }
+}
+
+.popup {
+  .title {
+    background: #5DAB47;
+    color: white;
+    margin: 0;
+    padding: 6px 12px;
+  }
+  .title + .block {
+    margin-top: 0;
+  }
+  &.translucent {
+    background: transparent;
+    .main {
+      position: absolute;
+      top: 50%;
+      transform: translate(0, -50%);
+      margin: 0;
+      left: 7%;
+      width: 86%;
+    }
+  }
+}
+
+.empty-loader {
+	margin: 16vh 50%
+}
+
+.vcenter {
+  transform: translate(0, -50%);
+  position: relative;
+  top: 50%;
+}
+
+/* hide the small line in attachment button row in notice and complaint page */
+.attachment {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  &:after {
+    display: none !important;
+  }
+}
+
+.upload-filename {
+  font-size: 0.9em;
+  &.placeholder {
+    opacity: 0.6;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .col-100 + .col-100 {
+    margin-top: 12px;
+  }
+  
+  .block .row + .row {
+    margin-top: 16px;
+  }
+}
+
+@media screen and (max-width: 320px) {
+  .col-100 + .col-100 {
+    margin-top: 10px;
+  }
+  
+  .block .row + .row {
+    margin-top: 10px;
+  }
+}
+
+@media screen and (max-width: 320px) {
+  :root {
+    --f7-fab-size: 38px;
+  }
+}
+
+/* on large screen, hide shadow from a translucent popup
+   and instead apply it on hte main div for proper display
+*/
+@media screen and (min-width: 500px) {
+  .popup.translucent {
+    box-shadow: none;
+    .main {
+      position: absolute;
+      top: 50%;
+      transform: translate(0, -50%);
+      margin: 0;
+      left: 7%;
+      width: 86%;
+      box-shadow: var(--f7-popup-box-shadow);
+    }
+  }
+}

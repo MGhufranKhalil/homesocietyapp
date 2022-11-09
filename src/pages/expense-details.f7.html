@@ -1,0 +1,382 @@
+<template>
+<div class="page page-with-subnavbar expense-details" {{#if rtl}} dir="rtl" {{/if}}>
+  <div class="navbar navbar-expenses">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+          <span class="if-not-md">back</span>
+        </a>
+      </div>
+      <div class="title">{{month}}</div>
+      <div class="subnavbar">
+        <div class="subnavbar-inner">
+          <div class="segmented">
+            <a href="#expenses-tab1" class="button button-active">{{_ll('Expenses')}}</a>
+            <a href="#expenses-tab2" class="button">{{_ll('Collections')}}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="page-content hide-navbar-on-scroll">
+    <div class="tabs">
+      <div class="tab tab-active" id="expenses-tab1">
+        {{#if expenses}}
+        <div class="data-table data-table-init card">
+          <div class="card-content">
+            <table>
+              <thead>
+                <tr>
+                  <th class="label-cell day" width="40">{{../_ll('Day')}}</th>
+                  <th class="label-cell category">{{../_ll('Category')}}</th>
+                  <th class="numeric-cell amount">{{../_ll('Amount')}}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each expenses}}
+                <tr data-id="{{this.id}}">
+                  <td class="label-cell day" width="40">{{ordinalNumber this.day}}</td>
+                  <td class="label-cell category">
+                    <div class="chip chip-outline" style="color:white;background-color:{{str2color this.category s="90" l="40"}}">
+                      <div class="chip-label">{{this.category}}</div>
+                    </div>
+                  </td>
+                  <td class="numeric-cell amount">{{this.amount}}</td>
+                </tr>
+                {{#js_if "this.notes && this.notes.length"}}
+                <tr data-notes-{{this.id}}>
+                  <td colspan="5" class="label-cell notes">{{escapeHTML this.notes}}</td>
+                </tr>
+                {{/js_if}}
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {{else}}
+          <div class="preloader empty-loader"></div>
+        {{/if}}
+      </div>
+      <div class="tab" id="expenses-tab2">
+        {{#if collections}}
+        <div class="data-table data-table-init card">
+          <div class="card-content">
+            <table>
+              <thead>
+                <tr>
+                  <th class="label-cell day" width="40">{{../_ll('Day')}}</th>
+                  <th class="label-cell category">{{../_ll('Category')}}</th>
+                  <th class="numeric-cell amount">{{../_ll('Amount')}}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each collections}}
+                <tr data-id="{{this.id}}">
+                  <td class="label-cell day" width="40">{{ordinalNumber this.day}}</td>
+                  <td class="label-cell category">
+                    <div class="chip chip-outline" style="color:white;background-color:{{str2color this.category s="70" l="30"}}">
+                      <div class="chip-label">{{this.category}}</div>
+                    </div>
+                  </td>
+                  <td class="numeric-cell amount">{{this.amount}}</td>
+                </tr>
+                {{#js_if "this.notes.length"}}
+                <tr>
+                  <td colspan="5" class="label-cell notes">{{escapeHTML this.notes}}</td>
+                </tr>
+                {{/js_if}}
+                {{#js_if "this.houses && this.houses.length"}}
+                <tr>
+                  <td colspan="5" class="label-cell notes">{{escapeHTML this.houses}} {{../../_ll('Houses')}}</td>
+                </tr>
+                {{/js_if}}
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {{else}}
+          <div class="preloader empty-loader"></div>
+        {{/if}}
+        {{#js_if "this.maintenance && this.showMaintenance"}}
+        <br>
+        <div class="card maintenance-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <i class="si-calcheck"></i>
+            </div>
+            <div class="card-title">{{_ll('MaintenanceRecieved')}}</div>
+          </div>
+          <div class="card-content">
+            <div class="chips">
+            {{#each house_list}}
+              <a class="chip chip-outline" data-house="{{ this }}" @click="toggleChip">
+                <div class="chip-media">{{ this }}</div>
+                <div class="chip-label"></div>
+              </a>
+            {{/each}}
+            </div>
+          </div>
+        </div>
+        {{/js_if}}
+      </div>
+    </div>
+  </div>
+  {{#if isDownloadable}}
+  <div class="fab fab-right-bottom">
+    <a href="#" class="link" @click="downloadPdf">
+      <i class="icon f7-icons">arrow_down_square</i>
+    </a>
+  </div>
+  {{/if}}
+</div>
+</template>
+<script>
+  import $$ from 'dom7';
+  import Config from '../js/config.js';
+  import Api from '../js/api.js';
+  import Alerts from '../js/alerts.js';
+  import Util from '../js/util.js';
+  import {parse, differenceInDays} from 'date-fns';
+
+  let selectedEl = null;
+  let expenseDetailPage = null;
+  let isRecordLocked = false;
+
+  // @@TODO: following could be really DRY, refactor as possible
+
+  const getData = () => {
+    const id = selectedEl.attr("data-id");
+    const notes = $$(`[data-notes-${id}]`).text();
+    return {
+      id,
+      month: expenseDetailPage.$route.params.month,
+      day: selectedEl.find('.day').text(),
+      category: selectedEl.find('.category').text(),
+      amount: selectedEl.find('.amount').text(),
+      notes
+    };
+  };
+
+  const editExpense = (d, e) => {
+    d.close();
+    let data = getData();
+    app.views.current.router.navigate("/edit-expense/", {context: data});
+    /*app.dialog.prompt(_ll('EnterAmount'), function(value) {
+      data.amount = value;
+      Api.edit_expense(data).then(function(res) {
+        if(!res.data.success) {
+          throw new Error('Network issue');
+        }
+        selectedEl = null;
+        app.view.current.router.refreshPage();
+      }).catch(function(error) {
+        Alerts.error(error.message);
+      });
+    }, () => {}, data.amount);*/
+  };
+  const deleteExpense = (d, e) => {
+    d.close();
+    const data = getData();
+    app.dialog.confirm(_ll('DeleteEntry'), function() {
+      Api.delete_expense(data).then(function(res) {
+        if(!res.data.success) {
+          throw new Error('Network issue');
+        }
+      selectedEl = null;
+        app.view.current.router.refreshPage();
+      }).catch(function(error) {
+        Alerts.error(error.message);
+      });
+    }, () => {});
+  };
+
+  const editCollection = (d, e) => {
+    d.close();
+    let data = getData();
+    app.dialog.prompt(_ll('EnterAmount'), function(value) {
+      data.amount = value;
+      Api.edit_collection(data).then(function(res) {
+        if(!res.data.success) {
+          throw new Error('Network issue');
+        }
+        selectedEl = null;
+        app.view.current.router.refreshPage();
+      }).catch(function(error) {
+        Alerts.error(error.message);
+      });
+    }, () => {}, data.amount);
+  };
+  const deleteCollection = (d, e) => {
+    d.close();
+    const data = getData();
+    app.dialog.confirm(_ll('DeleteEntry'), function() {
+      Api.delete_collection(data).then(function(res) {
+        if(!res.data.success) {
+          throw new Error('Network issue');
+        }
+        selectedEl = null;
+        app.view.current.router.refreshPage();
+      }).catch(function(error) {
+        Alerts.error(error.message);
+      });
+    }, () => {});
+  };
+
+  const setupEditing = () => {
+    // mark the maintenance record per house and update amount
+    if(expenseDetailPage.maintenance && expenseDetailPage.maintenance.length) {
+      for(var i in expenseDetailPage.maintenance) {
+        const obj = expenseDetailPage.maintenance[i];
+        const el = $$(".page.expense-details .chips .chip[data-house='" + obj.house_number + "']");
+        el.removeClass("chip-outline");
+        el.find(".chip-label").html(obj.amount).attr("data-id", obj.id);
+      }
+    }
+
+    if(isRecordLocked) {
+      return false;
+    }
+
+    if(Util.can('expense')) {
+      $$("#expenses-tab1 tbody tr").on('click', function(e) {
+        selectedEl = $$(e.target).parents('tr');
+        const id = selectedEl.attr("data-id");
+        if(id == null) return false;
+        app.dialog.create({
+          title: _ll('SelectOption'),
+          buttons: [{
+            text: _ll('Edit'),
+            onClick: editExpense
+          },{
+            text: _ll('Delete'),
+            onClick: deleteExpense
+          }]
+          //verticalButtons: true,
+        }).open();
+      });
+    }
+
+    if(Util.can('collection')) {
+      $$("#expenses-tab2 tbody tr").on('click', function(e) {
+        selectedEl = $$(e.target).parents('tr');
+        const id = selectedEl.attr("data-id");
+        if(!id) return false;
+        app.dialog.create({
+          title: _ll('SelectOption'),
+          buttons: [{
+            text: _ll('Edit'),
+            onClick: editCollection
+          },{
+            text: _ll('Delete'),
+            onClick: deleteCollection
+          }],
+          //verticalButtons: true,
+        }).open();
+      });
+    }
+
+  };
+
+  const loadExpenseDetails = (callback = () => {}) => {
+    const month = expenseDetailPage.$route.params.month;
+    Api.get_expense_details(month).then(function(res) {
+      if(!res.data.success) {
+        throw new Error('Network issue');
+      }
+      
+      // lock editing of previous month on 5th of each new month
+      const dt = parse(month, "MMMM yyyy", new Date());
+      const today = new Date();
+      const diff = differenceInDays(today, dt);
+      isRecordLocked = diff > 60;
+
+      expenseDetailPage.$setState({
+        month: month,
+        expenses: res.data.data.expenses,
+        collections: res.data.data.collections,
+        maintenance: res.data.data.maintenance,
+        isDownloadable: isRecordLocked
+      }, callback);
+    }).catch(function(error) {
+      Alerts.error(error.message);
+    });
+  };
+
+  export default {
+  	data: function () {
+  		return this.$app.methods.pageData({
+        house_list: app.data.society.list,
+        showMaintenance: true, //Util.can('collection'), // can see maintenance list of houses
+        month: null,
+        expenses: null,
+        collections: null,
+        maintenance: null,
+        isDownloadable: false
+  		});
+  	},
+  	methods: {
+      toggleChip: function (e) {
+        if(isRecordLocked || !Util.can('collection')) {
+          return false;
+        }
+
+        let chip = $$(e.target);
+        if(!chip.hasClass("chip")) {
+          chip = chip.parent(".chip");
+        }
+        // only those can be selected who have not paid maintenance
+        /*if(!chip.hasClass("chip-outline")) {
+          return false;
+        }*/
+        // chip.toggleClass("mark");
+        const house = chip.find('.chip-media').text();
+        const amount = chip.find('.chip-label').text();
+        const id = chip.find('.chip-label').attr("data-id");
+        if(amount && amount.length) {
+          app.dialog.confirm(_ll('DeleteEntry') + " " + house, function() {
+            const data = {id: id, house: house, amount: amount};
+            Api.delete_maintenance(data).then(function(res) {
+              if(!res.data.success) {
+                throw new Error('Network issue');
+              }
+            selectedEl = null;
+              app.view.current.router.refreshPage();
+            }).catch(function(error) {
+              Alerts.error(error.message);
+            });
+          });
+        }
+      },
+      deleteChips: function(e) {
+      },
+      downloadPdf: function(e) {
+        const month = this.$route.params.month;
+        const file = Config.api + "expenses/download/" + month;
+        app.methods.downloadFile(file);
+      }
+  	},
+  	on: {
+  		pageInit: function(e, page) {
+        
+        var self = this;
+        expenseDetailPage = this;
+
+        $$(".navbar-expenses .subnavbar-inner .button").on('click', function(e) {
+					var id = $$(this).attr("href");
+					$$(".navbar-expenses .subnavbar-inner .button-active").removeClass("button-active");
+					$$(this).addClass("button-active");
+					app.tab.show(id, true);
+        });
+        
+        loadExpenseDetails(setupEditing);
+  		},
+      pageReinit: function(e, page) {
+        expenseDetailPage = this;
+        loadExpenseDetails();
+      }
+  	}
+  };
+  </script>

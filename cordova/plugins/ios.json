@@ -1,0 +1,77 @@
+{
+  "prepare_queue": {
+    "installed": [],
+    "uninstalled": []
+  },
+  "config_munge": {
+    "files": {}
+  },
+  "installed_plugins": {
+    "cordova-plugin-chooser": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-ios-xhr": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-keyboard": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-media": {
+      "KEEP_AVAUDIOSESSION_ALWAYS_ACTIVE": "NO",
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-media-capture": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-network-information": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-os-call-number": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-purchase": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-screen-orientation": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-statusbar": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-x-toast": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "onesignal-cordova-plugin": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-splashscreen": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-file-transfer": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-camera": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-device": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-androidx-adapter": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-webview-checker": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "cordova-plugin-file": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    }
+  },
+  "dependent_plugins": {
+    "cordova-plugin-add-swift-support": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    },
+    "es6-promise-plugin": {
+      "PACKAGE_NAME": "com.weboxsolutions.apps.homesociety"
+    }
+  }
+}

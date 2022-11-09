@@ -1,0 +1,113 @@
+<template>
+  <div class="page pa-home directory" data-name="pa-home">
+    <div class="navbar">
+      <div class="navbar-bg"></div>
+      <div class="navbar-inner sliding">
+        <div class="left">
+          <a href="#" class="panel-open" data-panel="left">
+            <i class="si-menu"></i>
+          </a>
+        </div>
+        <div class="title">Home Society Admin</div>
+        <div class="right">
+          <a href="#" @click="addSociety">
+            <i class="si-plus"></i>
+          </a>
+        </div>
+        <div class="subnavbar">
+          <!-- Searchbar with auto init -->
+          <form class="searchbar">
+            <div class="searchbar-inner">
+              <div class="searchbar-input-wrap">
+                <input type="search" placeholder="{{_ll('SearchPlaceholder')}}">
+                <i class="searchbar-icon"></i>
+                <span class="input-clear-button"></span>
+              </div>
+              <span class="searchbar-disable-button if-not-aurora">Cancel</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="page-content ptr-content" data-ptr-distance="55" data-ptr-mousewheel="true">
+      <div class="ptr-preloader">
+        <div class="preloader"></div>
+        <div class="ptr-arrow"></div>
+      </div>
+      <div class="searchbar-backdrop"></div>
+      <div class="list links-list society-list">
+        <ul>
+        {{#each list}}
+          <li>
+            <a href="/pa/society/{{ this.id }}">{{this.name}}</a>
+          </li>
+        {{/each}}
+        </ul>
+      </div>
+    </div>
+  </div>
+  </template>
+  <script>
+    import $$ from 'dom7';
+    import Api from '../js/api.js';
+    import Alerts from '../js/alerts.js';
+    import DB from '../js/db.js';
+    import Util from '../js/util.js';
+    import Cache from '../js/cache.js';
+  
+    let paHome = null;
+    let paHomePtr = null;
+  
+    const loadDirectory = (event) => {
+      Api.call("admin/societies", null, function(res) {
+        return res.data && res.data.success ? true : false;
+      }).then(function(res) {
+				if(!res.data.success) {
+          throw new Error('Network issue');
+        }
+        if(event) app.ptr.done(paHomePtr);
+        paHome.$setState({
+          list: res.data.data.list
+        });
+			}).catch(function(error) {
+        Alerts.error(error.message);
+      });
+    };
+  
+    export default {
+      data: function () {
+        return this.$app.methods.pageData({});
+      },
+      methods: {
+        addSociety: function() {
+          app.methods.go("/pa/society/");
+        }
+      },
+      on: {
+        pageInit: function(e, page) {
+          paHome = this;
+          paHomePtr = $$('.pa-home .ptr-content');
+          paHomePtr.on('ptr:refresh', loadDirectory);
+          setTimeout(function () {
+            app.ptr.refresh(paHomePtr);
+          }, 500);
+  
+          var searchbar = app.searchbar.create({
+            el: '.searchbar',
+            searchContainer: '.society-list',
+            searchItem: 'li',
+            searchIn: 'li a',
+            on: {
+              search(sb, query, previousQuery) {
+                // console.log(query, previousQuery);
+              }
+            }
+          });
+        },
+        pageReinit: function(e, page) {
+          app.ptr.refresh(paHomePtr);
+        }
+      }
+    };
+    </script>
+  

@@ -1,0 +1,178 @@
+<template>
+  <div class="page workers-leaves" data-name="workers-leaves" {{#if rtl}} dir="rtl" {{/if}}>
+    <div class="navbar">
+      <div class="navbar-bg"></div>
+      <div class="navbar-inner sliding">
+        <div class="left">
+          <a href="#" class="link back">
+            <i class="icon icon-back"></i>
+            <span class="if-not-md">back</span>
+          </a>
+        </div>
+        <div class="title">{{_ll('WorkersLeaves')}}</div>
+        <div class="subnavbar">
+          <!-- Searchbar with auto init -->
+          <form class="searchbar">
+            <div class="searchbar-inner">
+              <div class="searchbar-input-wrap">
+                <input type="search" placeholder="{{_ll('SearchPlaceholder')}}">
+                <i class="searchbar-icon"></i>
+                <span class="input-clear-button"></span>
+              </div>
+              <span class="searchbar-disable-button if-not-aurora">Cancel</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="page-content ptr-content" data-ptr-distance="55" data-ptr-mousewheel="true">
+      <div class="ptr-preloader">
+        <div class="preloader"></div>
+        <div class="ptr-arrow"></div>
+      </div>
+      <div class="searchbar-backdrop"></div>
+      <div class="data-table data-table-init card">
+        <div class="card-content">
+          <table id="worker-leaves-table">
+            <thead>
+              <tr>
+                <th class="label-cell" width="160">{{../_ll('Date')}}</th>
+                <th class="label-cell">{{../_ll('Name')}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each list}}
+              <tr data-id="{{this.id}}">
+                <td class="label-cell" width="160">{{formatDate parseFormat="yyyy-M-dd" format="d MMM yyyy" date}}</td>
+                <td class="label-cell name">{{this.name}}</td>
+              </tr>
+              {{#js_if "this.notes.length"}}
+              <tr>
+                <td colspan="2" class="label-cell notes">{{escapeHTML this.notes}}</td>
+              </tr>
+              {{/js_if}}
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {{#if editable}}
+    <div class="fab fab-right-bottom">
+      <a class="link" href="/add-worker-leave/" data-view="#view-home">
+        <i class="icon f7-icons">plus</i>
+      </a>
+    </div>
+    {{/if}}
+  </div>
+  </template>
+  <script>
+    import $$ from 'dom7';
+    import Api from '../js/api.js';
+    import Alerts from '../js/alerts.js';
+    import DB from '../js/db.js';
+    import Util from '../js/util.js';
+    import Cache from '../js/cache.js';
+  
+    let workersLeavesPage = null;
+    let workersLeavesPtr = null;
+    let selectedEl = null;
+  
+    const loadRecords = (event) => {
+      Api.get_workers_leaves().then(function(res) {
+        if(!res.data.success) {
+          throw new Error('Network issue');
+        }
+        if(event) app.ptr.done(workersLeavesPtr);
+        workersLeavesPage.$setState({
+          list: res.data.data
+        });
+        Cache.set('workers-leaves', res.data.data);
+        if(Util.can('workers')) {
+          setupDeletion();
+        }
+      }).catch(function(error) {
+        if(event) {
+          app.ptr.done(workersLeavesPtr);
+          Alerts.error(error);
+        }
+      });
+    };
+
+    const deleteLeave = (d, e) => {
+    d.close();
+    app.dialog.confirm(_ll('DeleteEntry'), function() {
+      const id = selectedEl.attr("data-id");
+      Api.delete_worker_leave(id).then(function(res) {
+        if(!res.data.success) {
+          throw new Error('Network issue');
+        }
+        selectedEl = null;
+        app.view.current.router.refreshPage();
+      }).catch(function(error) {
+        Alerts.error(error.message);
+      });
+    }, () => {});
+  };
+
+    const setupDeletion = () => {
+      $$("#worker-leaves-table tbody tr").on('click', function(e) {
+        selectedEl = $$(e.target).parents('tr');
+        const id = selectedEl.attr("data-id");
+        if(id == null) return false;
+        app.dialog.create({
+          title: _ll('SelectOption'),
+          buttons: [{
+            text: _ll('Delete'),
+            onClick: deleteLeave
+          }]
+          //verticalButtons: true,
+        }).open();
+      });
+    }
+  
+    export default {
+      data: function () {
+        return this.$app.methods.pageData({
+          list: [],
+          editable: Util.can('workers')
+        });
+      },
+      methods: {
+      },
+      on: {
+        pageInit: function(e, page) {
+          workersLeavesPage = this;
+          workersLeavesPtr = $$('.workers-leaves .ptr-content');
+          workersLeavesPtr.on('ptr:refresh', loadRecords);
+          setTimeout(function () {
+            // delay loading from cache to improve performance
+            workersLeavesPage.$setState({
+              list: Cache.get('workers-leaves', []),
+            });
+            loadRecords();
+          }, 10);
+  
+          var searchbar = app.searchbar.create({
+            el: '.page.workers-leaves .searchbar',
+            searchContainer: '.page.workers-leaves .data-table tbody',
+            searchItem: 'tr',
+            searchIn: '.name',
+            on: {
+              search(sb, query, previousQuery) {
+                // console.log(query, previousQuery);
+              }
+            }
+          });
+        },
+        pageReinit: function(e, page) {
+          app.ptr.refresh(workersLeavesPtr);
+        },
+        
+        pageBeforeIn: function(e, page) {
+          $$('.toolbar').removeClass("hidden");
+        }
+      }
+    };
+    </script>
+  

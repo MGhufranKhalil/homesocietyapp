@@ -1,0 +1,181 @@
+<template>
+<div class="page society-account transparent" data-name="society-account">
+  <div class="navbar">
+    <div class="navbar-bg"></div>
+    <div class="navbar-inner sliding">
+      <div class="left">
+        <a href="#" class="link back">
+          <i class="icon icon-back"></i>
+        </a>
+      </div>
+      <div class="title">Society Account</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="row">
+      <div class="col-0 small-20 medium-20 large-30"></div>
+      <div class="col-100 small-60 medium-60 large-40">
+        <div class="list no-hairlines-md">
+          <ul>
+            <li>
+              <div class="item-content item-input">
+                <div class="item-inner">
+                  <div class="item-title item-label">Name of Society</div>
+                  <div class="item-input-wrap">
+                    <input type="text" name="name" maxlength="100" validate required />
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content item-input">
+                <div class="item-inner">
+                  <div class="item-title item-label">Number of Houses</div>
+                  <div class="item-input-wrap">
+                    <input type="tel" name="houses" maxlength="5" validate required />
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content item-input">
+                <div class="item-inner">
+                  <div class="item-title item-label">House Number Prefix</div>
+                  <div class="item-input-wrap">
+                    <input type="text" name="prefix" maxlength="20" validate required />
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content item-input">
+                <div class="item-inner">
+                  <div class="item-title item-label">Code</div>
+                  <div class="item-input-wrap">
+                    <input type="text" name="code" maxlength="10" validate required />
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content">
+                <div class="item-inner">
+                  <div class="item-title">
+                    <div class="item-title item-label">Configuration</div>
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content">
+                <div class="item-inner">
+                  <div class="item-title">
+                    <span class="item-label">Push Notifications</span>
+                  </div>
+                  <div class="item-after">
+                    <label class="toggle toggle-init">
+                      <input type="checkbox" name="notifications">
+                      <span class="toggle-icon"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="item-content">
+                <div class="item-inner">
+                  <div class="item-title">
+                    <span class="item-label">User Verification</span>
+                  </div>
+                  <div class="item-after">
+                    <label class="toggle toggle-init">
+                      <input type="checkbox" name="verification">
+                      <span class="toggle-icon"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="item-content item-input">
+                <div class="item-inner">
+                  <div class="item-title item-label">Help Contact</div>
+                  <div class="item-input-wrap">
+                    <input type="text" name="contact"
+                    validate required placeholder="e.g. whatsapp: 01232345678"
+                    />
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+          <div class="block block-strong">
+            <p class="row">
+              <a href="#" class="col button button-large button-fill button-raised submit" @click="register">Submit</a>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-0 small-20 medium-20 large-30"></div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+import $$ from 'dom7';
+import Api from '../js/api.js';
+import DB from '../js/db.js';
+import Alerts from '../js/alerts.js';
+
+let registrationPage = null;
+
+const doRegistration = function() {
+  app.preloader.show();
+  const data = {
+    name: $$(".page.society-account [name=name]").val(),
+    notifications: $$(".page.society-account [name=notifications]:checked").length,
+    verification: $$(".page.society-account [name=verification]:checked").length,
+    prefix: $$(".page.society-account [name=prefix]").val(),
+    houses: $$(".page.society-account [name=houses]").val(),
+    prefix: $$(".page.society-account [name=prefix]").val(),
+    code: $$(".page.society-account [name=code]").val(),
+    contact: $$(".page.society-account [name=contact]").val(),
+    deviceid: window.device && device.uuid ? device.uuid : 'xxxxxxxxxxx'
+  };
+
+  Api.call("admin/addsociety", data, function(res) {
+    return res.data && res.data.success ? true : false;
+  }).then(function(res) {
+    app.preloader.hide();
+    if(!res.data.success) {
+      throw new Error('Network issue');
+    }
+    Alerts.success("New society account registered");
+    app.methods.goBack();
+  }).catch(function(error) {
+    app.preloader.hide();
+    Alerts.error(error.message);
+  });
+};
+
+export default {
+	data: function () {
+    const id = this.$route.params.id;
+		return this.$app.methods.pageData({
+			isEdit: id
+		});
+	},
+	methods: {
+		register: function(e) {
+      if(!app.input.validateInputs(".page.society-account .page-content")) {
+        return false;
+      }
+      doRegistration(e);
+		}
+	},
+	on: {
+		pageInit: function(e, page) {
+      registrationPage = this;
+      const id = registrationPage.$route.params.id;
+		}
+	}
+};
+</script>
