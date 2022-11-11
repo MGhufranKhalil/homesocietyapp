@@ -1,4 +1,26 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content: https://sumairas33.homesociety.pk https://ssl.gstatic.com/ https://maps.googleapis.com/ https://maps.gstatic.com/ https://csi.gstatic.com/ https://chart.googleapis.com/ https://i.ibb.co/"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover"><meta name="theme-color" content="#369FFD"><meta name="format-detection" content="telephone=no"><meta name="msapplication-tap-highlight" content="no"><title>Home Society</title><style>/* minimal css for splash display */
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!--
+  Customize this policy to fit your own app's needs. For more guidance, see:
+      https://github.com/apache/cordova-plugin-whitelist/blob/master/README.md#content-security-policy
+  Some notes:
+    * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+    * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+    * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+      * Enable inline JS: add 'unsafe-inline' to default-src
+  -->
+  <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content: https://homesociety.techibits.com https://ssl.gstatic.com/ https://maps.googleapis.com/ https://maps.gstatic.com/ https://csi.gstatic.com/ https://chart.googleapis.com/ ">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui, viewport-fit=cover">
+
+  <meta name="theme-color" content="#369FFD">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="msapplication-tap-highlight" content="no">
+  <title>Home Society</title>
+
+  <style type="text/css">
+  /* minimal css for splash display */
   body.splash {
     background: #369FFD;
     color: #ffffff;
@@ -46,7 +68,13 @@
     .splash-dev {
       font-size: 19px;
     }
-  }</style><link href="css/app.css" rel="stylesheet"></head><body class="splash"><script id="panel-left-template" type="text/template7"><div class="view">
+  }
+  </style>
+  <!-- built styles file will be auto injected -->
+</head>
+<body class="splash">
+	<script id="panel-left-template" type="text/template7">
+	 <div class="view">
 		 <div class="content-block">
 			 <div class="card">
 				 <div class="card-content">
@@ -115,7 +143,11 @@
          </p>
 			 </div>
 		 </div>
-	 </div></script><script id="toolbar-template" type="script/template7"><div class="toolbar-inner">
+	 </div>
+	</script>
+
+  <script id="toolbar-template" type="script/template7">
+    <div class="toolbar-inner">
       <a href="#view-home" class="tab-link tab-view-home tab-link-active">
         <i class="icon f7-icons">exclamationmark_circle_fill</i>
         <span class="tabbar-label">{{_ll('Notices')}}</span>
@@ -132,7 +164,14 @@
         <i class="icon f7-icons">square_stack_3d_up_fill</i>
         <span class="tabbar-label">{{_ll('Expenses')}}</span>
       </a>
-    </div></script><div class="popup translucent" id="popup-society-code"></div><script id="popup-society-code-template" type="script/template7"><div class="main blur">
+    </div>
+  </script>
+
+  <div class="popup translucent" id="popup-society-code">
+  </div>
+
+  <script id="popup-society-code-template" type="script/template7">
+    <div class="main blur">
       <h2 class="title">{{_ll('SocietyCode')}}</h2>
       <div class="block block-strong">
         <div class="row">
@@ -157,7 +196,22 @@
           </div>
         </div>
       </div>
-    </div></script><div id="app"><div class="splash-logo"></div><div class="splash-dev"><div class="dev-company">Techibits</div></div></div><script src="cordova.js"></script><script>function checkWebViewVersion() {
+    </div>
+  </script>
+
+  <div id="app">
+    <div class="splash-logo"></div>
+    <!--div class="preloader color-purple"></div-->
+    <div class="splash-dev">
+      <!--div class="dev-label">Developed by</div-->
+      <div class="dev-company"></div>
+    </div>
+  </div>
+  
+  <script src="cordova.js"></script>
+  
+  <script>
+    function checkWebViewVersion() {
       if(window.plugins && window.plugins.webViewChecker && plugins.webViewChecker.getAndroidWebViewPackageInfo) {
         plugins.webViewChecker.getAndroidWebViewPackageInfo()
           .then(function(packageInfo) { 
@@ -173,4 +227,8 @@
       console.log(e);
       // setTimeout(checkWebViewVersion, 1000);
       alert("We are sorry but your system is using an old version of android which is not supported.\n\nPlease contact support for more information.");
-    };</script><script src="js/app.js" async></script></body></html>
+    };
+  </script>
+  <!-- built script files will be auto injected -->
+<script type="text/javascript" src="js/app.js" async></script></body>
+</html>

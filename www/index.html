@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content: https://apps.weboxsolutions.com https://ssl.gstatic.com/ https://maps.googleapis.com/ https://maps.gstatic.com/ https://csi.gstatic.com/ https://chart.googleapis.com/ https://i.ibb.co/"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover"><meta name="theme-color" content="#369FFD"><meta name="format-detection" content="telephone=no"><meta name="msapplication-tap-highlight" content="no"><title>Home Society</title><style>/* minimal css for splash display */
+<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content: https://homesociety.techibits.com https://ssl.gstatic.com/ https://maps.googleapis.com/ https://maps.gstatic.com/ https://csi.gstatic.com/ https://chart.googleapis.com/ "><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover"><meta name="theme-color" content="#369FFD"><meta name="format-detection" content="telephone=no"><meta name="msapplication-tap-highlight" content="no"><title>Home Society</title><style>/* minimal css for splash display */
   body.splash {
     background: #369FFD;
     color: #ffffff;
@@ -82,6 +82,14 @@
               </div>
             </div>
           </a></li>
+          {{#if workers}}
+           <li><a href="/workers-leaves/" class="item-link" data-view="#view-home">
+            <div class="item-content">
+              <div class="item-inner">
+                <span class="item-title"><i class="si-plus"></i>{{_ll('WorkersLeaves')}}</span>
+              </div>
+            </div>
+          </a></li>
           {{/if}}
             <li><a href="/my-profile/" class="item-link" data-view="#view-home">
               <div class="item-content">
@@ -149,7 +157,7 @@
           </div>
         </div>
       </div>
-    </div></script><div id="app"><div class="splash-logo"></div><div class="splash-dev"><div class="dev-company">Webox Solutions</div></div></div><script>function checkWebViewVersion() {
+    </div></script><div id="app"><div class="splash-logo"></div><div class="splash-dev"><div class="dev-company"></div></div></div><script>function checkWebViewVersion() {
       if(window.plugins && window.plugins.webViewChecker && plugins.webViewChecker.getAndroidWebViewPackageInfo) {
         plugins.webViewChecker.getAndroidWebViewPackageInfo()
           .then(function(packageInfo) { 
